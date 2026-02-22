@@ -18,9 +18,7 @@ const FILES_TO_LOAD = [
     './javascript/ui/ui-controls.js',
     './javascript/ui/scroll-system.js',
     './javascript/features/preload-game.js',
-    './javascript/features/svg-processor.js',
-    './image/wood.webp',
-    './image/Upper_wood.webp'
+    './javascript/features/svg-processor.js'
 ];
 
 /**
