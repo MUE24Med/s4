@@ -43,11 +43,6 @@
     
     <!-- Monday 8 -->
     <g transform="translate(368,0)">
-        <rect x="0" y="703" height="380" class="m w l" data-href="RRS/Lecture/micro-01.pdf"/>
-        <rect x="0" y="1083" height="253.5" class="m w l" data-href="RRS/Lecture/patho-01.pdf"/>
-        <rect x="0" y="1339" height="125" class="m w q" data-href="RRS/Quesion/patho-01.pdf"/>
-        <rect x="0" y="1465" height="378.5" class="m w l" data-href="RRS/Lecture/physio-02.pdf"/>
-        <rect x="0" y="1845" height="380" class="m w s" data-href="RRS/Section/anatomy-01.pdf"/>
     </g>
     
     <!-- Wednesday 8 -->
