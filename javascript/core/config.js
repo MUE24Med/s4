@@ -2,7 +2,7 @@
 // config.js - الثوابت والإعدادات العامة
 // ============================================
 
-export const REPO_NAME = "s3";
+export const REPO_NAME = "s4";
 export const GITHUB_USER = "MUE24Med";
 
 export const NEW_API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents`;
