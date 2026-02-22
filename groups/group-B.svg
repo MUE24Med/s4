@@ -307,29 +307,18 @@
     
     <!-- Sunday 21 -->
     <g transform="translate(253,0)">
-        <rect x="0" y="1128.3" height="376.71" class="m w l" data-href="HEM/Lecture/para-01.pdf" />
-        <rect x="0" y="1505.7" height="378.8" class="m w s" data-href="#" />
-        <rect x="0" y="1885.5" height="289.5" class="m w l" data-href="HEM/Lecture/physio-02.pdf" />
     </g>
     
     <!-- Monday 21 -->
     <g transform="translate(368.5,0)">
-        <rect x="0" y="289.3" height="448.1" class="m w" data-href="#" />
-        <rect x="0" y="853.5" height="547.6" class="m w" data-href="#" />
-        <rect x="0" y="1886.3" height="384.2" class="m w" data-href="#" />
     </g>
     
     <!-- Wednesday 21 -->
     <g transform="translate(598,0)">
-        <rect x="0" y="1403" height="481" class="m w" data-href="#" />
     </g>
     
     <!-- Thursday 21 -->
     <g transform="translate(713,0)">
-        <rect x="0" y="391.2" height="461" class="m w" data-href="#" />
-        <rect x="0" y="854" height="547" class="m w" data-href="#" />
-        <rect x="0" y="1403.1" height="482.6" class="m w" data-href="#" />
-    </g>
 </g>
 
 <!-- الاسبوع الثاني و العشرين -->
