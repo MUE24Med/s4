@@ -5,6 +5,24 @@
 <!-- الاسبوع الأول -->
 <g transform="translate(1024,0)">
     <image data-src="image/B/01.webp" width="1024" height="2454" />
+<!-- Saturday 22 -->
+<g transform="translate(140,0)" >
+</g>
+<!-- Sunday 22 -->
+<g transform="translate(253,0)" >
+</g>
+<!-- Monday 22 -->
+<g transform="translate(368,0)" >
+</g>
+<!-- Tuesday 22 -->
+<g transform="translate(484,0)" >
+</g>
+<!-- Wednesday 22 -->
+<g transform="translate(598,0)" >
+</g>
+<!-- Thursday 22 -->
+<g transform="translate(713,0)" >
+</g>
 </g>
 
 <!-- الاسبوع الثاني -->
@@ -40,43 +58,11 @@
 <!-- الاسبوع الثامن -->
 <g transform="translate(8192,0)">
     <image data-src="image/B/08.webp" width="1024" height="2454" />
-    
-    <!-- Monday 8 -->
-    <g transform="translate(368,0)">
-    </g>
-    
-    <!-- Wednesday 8 -->
-    <g transform="translate(598,0)">
-    </g>
-    
-    <!-- Thursday 8 -->
-    <g transform="translate(712.35,0)">
-    </g>
 </g>
 
 <!-- الاسبوع التاسع -->
 <g transform="translate(9216,0)">
     <image data-src="image/B/09.webp" width="1024" height="2454"/>
-    
-    <!-- Saturday 9 -->
-    <g transform="translate(140,0)">
-    </g>
-    
-    <!-- Monday 9 -->
-    <g transform="translate(370,0)">
-    </g>
-    
-    <!-- Tuesday 9 -->
-    <g transform="translate(485,0)">
-    </g>
-    
-    <!-- Wednesday 9 -->
-    <g transform="translate(600,0)">
-    </g>
-    
-    <!-- Thursday 9 -->
-    <g transform="translate(715,0)">
-    </g>
 </g>
 
 <!-- الاسبوع العاشر -->
