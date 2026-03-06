@@ -24,5 +24,27 @@ p<!-- groups/group-B.svg -->
 <g transform="translate(713,0)" >
 </g>
 </g>
+<!-- الاسبوع الثاني -->
+<g transform="translate(2048,0)">
+    <image data-src="image/B/02.webp" width="1024" height="2454" />
+<!-- Saturday 02 -->
+<g transform="translate(140,0)" >
+</g>
+<!-- Sunday 02 -->
+<g transform="translate(253,0)" >
+</g>
+<!-- Monday 02 -->
+<g transform="translate(368,0)" >
+</g>
+<!-- Tuesday 02 -->
+<g transform="translate(484,0)" >
+</g>
+<!-- Wednesday 02 -->
+<g transform="translate(598,0)" >
+</g>
+<!-- Thursday 02 -->
+<g transform="translate(713,0)" >
+</g>
+</g>
 <g id="dynamic-links-group"></g>
 </svg>
