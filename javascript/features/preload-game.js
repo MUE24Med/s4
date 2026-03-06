@@ -9,12 +9,24 @@ import { loadLiveLeaderboard, refreshPersonalRecordUI } from './leaderboard-ui.j
 import { PersonalRecord } from './leaderboard-core.js';
 import { getPlayerName, getDeviceId } from '../core/utils.js';
 
+// دالة مساعدة لتحديث عرض الرمز في شاشة البريلود
+function updatePreloadVisitorCode() {
+    const codeEl = document.getElementById('visitorCodeDisplay');
+    if (codeEl) {
+        const code = localStorage.getItem('visitor_id') || '0000';
+        codeEl.textContent = code;
+    }
+}
+
 export function initPreloadSystem() {
     const preloadDone = localStorage.getItem('preload_done');
     const preloadScreen = document.getElementById('preload-screen');
 
     if (!preloadDone && preloadScreen) {
         console.log('🔄 أول زيارة - تفعيل شاشة Preload مع اللعبة المصغرة');
+
+        // عرض الرمز المميز في شاشة البريلود
+        updatePreloadVisitorCode();
 
         // ✅ نبدأ اللعبة أولاً قبل التحميل
         initializeMiniGame();
