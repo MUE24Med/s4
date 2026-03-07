@@ -1,9 +1,11 @@
 // ============================================
-// tracker.js - نظام التتبع المُحسّن (معدل)
+// tracker.js - نظام التتبع المُحسّن (نسخة نهائية)
+// إصدار 2.0 - جمع بيانات شاملة مع ID مميز 4 أرقام
 // ============================================
 
 /**
  * توليد معرف فريد للزائر (4 أرقام ثابتة معتمدة على بصمة الجهاز)
+ * مع ضمان عدم التكرار على نفس الجهاز (في حالة نادرة جداً)
  */
 async function generateUniqueID() {
     const existingID = localStorage.getItem('visitor_id');
@@ -18,12 +20,28 @@ async function generateUniqueID() {
     const fp = UserTracker.deviceFingerprint; // نص هيكس (16 خانة)
     // تحويل أول 8 خانات من الهيكس إلى رقم عشري ثم أخذ آخر 4 أرقام
     const hashNumber = parseInt(fp.substring(0, 8), 16) || Math.floor(Math.random() * 10000);
-    const fourDigits = (hashNumber % 10000).toString().padStart(4, '0');
-    const newID = fourDigits;
+    let fourDigits = (hashNumber % 10000).toString().padStart(4, '0');
 
-    localStorage.setItem('visitor_id', newID);
-    console.log(`✅ Unique ID Generated: ${newID}`);
-    return newID;
+    // فحص إضافي: التأكد من عدم تكرار ID على نفس الجهاز (مخزن في all_used_ids)
+    // هذا يضمن عدم إعادة استخدام ID قديم إذا تغيرت البصمة بشكل غير متوقع
+    const usedIDs = JSON.parse(localStorage.getItem('all_used_ids') || '[]');
+    if (usedIDs.includes(fourDigits)) {
+        // في حالة التصادم (نادر جداً)، نضيف رقم عشوائي آخر
+        let attempts = 0;
+        while (usedIDs.includes(fourDigits) && attempts < 100) {
+            const newRandom = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            fourDigits = newRandom;
+            attempts++;
+        }
+    }
+    
+    // تخزين ID في قائمة المستخدمة (لنفس الجهاز)
+    usedIDs.push(fourDigits);
+    localStorage.setItem('all_used_ids', JSON.stringify(usedIDs));
+    localStorage.setItem('visitor_id', fourDigits);
+
+    console.log(`✅ Unique ID Generated: ${fourDigits}`);
+    return fourDigits;
 }
 
 /**
@@ -130,7 +148,6 @@ const UserTracker = {
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
     },
 
-    // تعديل: تعيد الاسم الحقيقي أو الرمز المميز (4 أرقام)
     getDisplayName() {
         const name = localStorage.getItem('user_real_name');
         return (name && name.trim() !== '') ? name : (localStorage.getItem('visitor_id') || '0000');
@@ -191,7 +208,7 @@ const UserTracker = {
     },
 
     /**
-     * إرسال البيانات إلى Formspree باستخدام fetch (معدل لضمان العمل)
+     * إرسال البيانات إلى Formspree باستخدام fetch
      */
     async send(action, isFinal = false) {
         try {
