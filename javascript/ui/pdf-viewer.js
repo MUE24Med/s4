@@ -1,5 +1,6 @@
 // ============================================
 // pdf-viewer.js - معاينة PDF وفتحه بطرق متعددة
+// مع تحسين جودة المعاينة ومعالجة أخطاء أفضل
 // ============================================
 
 import { RAW_CONTENT_BASE, NAV_STATE } from '../core/config.js';
@@ -9,7 +10,7 @@ import { resetBrowserZoom } from '../core/utils.js';
 export let currentPreviewItem = null;
 export let isToolbarExpanded = false;
 
-// ---------- معاينة PDF ----------
+// ---------- معاينة PDF (محدثة بجودة عالية) ----------
 export async function showPDFPreview(item) {
     if (!item || !item.path) return;
 
@@ -27,7 +28,7 @@ export async function showPDFPreview(item) {
     const fileName = item.path.split('/').pop();
     const url = `${RAW_CONTENT_BASE}${item.path}`;
 
-    // ✅ إظهار الـ popup بشكل صحيح
+    // إظهار النافذة
     popup.classList.remove('hidden');
     popup.style.display = 'flex';
 
@@ -61,21 +62,45 @@ export async function showPDFPreview(item) {
             throw new Error('PDF.js غير محمل');
         }
 
-        const loadingTask = pdfjsLib.getDocument(url);
+        // تحميل PDF مع إعدادات أفضل للتوافق
+        const loadingTask = pdfjsLib.getDocument({
+            url: url,
+            cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
+            cMapPacked: true,
+            disableRange: true,
+            disableStream: true,
+            disableAutoFetch: true
+        });
+        
         const pdf = await loadingTask.promise;
         console.log('📄 PDF محمل:', pdf.numPages, 'صفحة');
 
+        // استخدام scale أعلى للحصول على صورة أوضح
         const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 1.5 });
+        const viewport = page.getViewport({ scale: 2.0 }); // زيادة الدقة
 
-        const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
+        // ضبط أبعاد canvas
         canvas.width = viewport.width;
+        canvas.height = viewport.height;
 
-        await page.render({ canvasContext: context, viewport }).promise;
+        const context = canvas.getContext('2d', { alpha: false }); // خلفية غير شفافة للأداء
+        context.fillStyle = 'white';
+        context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // تحويل الـ canvas لصورة PNG
-        const imgData = canvas.toDataURL('image/png');
+        // رسم الصفحة
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport,
+            enableWebGL: false,
+            renderInteractiveForms: false
+        };
+
+        await page.render(renderContext).promise;
+
+        // تحويل canvas إلى صورة PNG بجودة عالية
+        const imgData = canvas.toDataURL('image/png', 1.0); // جودة 100%
+
+        // إنشاء عنصر img لعرض الصورة
         const previewImg = document.createElement('img');
         previewImg.src = imgData;
         previewImg.style.width = '100%';
@@ -83,18 +108,32 @@ export async function showPDFPreview(item) {
         previewImg.style.display = 'block';
         previewImg.style.objectFit = 'contain';
         previewImg.style.maxHeight = '80vh';
+        previewImg.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+        previewImg.style.borderRadius = '4px';
         previewImg.alt = `معاينة الصفحة الأولى من ${fileName}`;
 
+        // إخفاء canvas وإضافة الصورة
         canvas.style.display = 'none';
         canvas.parentNode.appendChild(previewImg);
 
         loading.classList.add('hidden');
         loading.style.display = 'none';
-        console.log('✅ تم تحويل المعاينة إلى صورة PNG');
+        
+        console.log('✅ تم تحويل المعاينة إلى صورة PNG عالية الجودة');
 
     } catch (error) {
         console.error('❌ خطأ في المعاينة:', error);
         loading.textContent = '❌ فشل تحميل المعاينة';
+        
+        // عرض رسالة خطأ بديلة
+        const errorMsg = document.createElement('div');
+        errorMsg.style.color = 'red';
+        errorMsg.style.padding = '20px';
+        errorMsg.style.textAlign = 'center';
+        errorMsg.textContent = 'تعذر تحميل المعاينة. قد يكون الملف تالفاً أو غير مدعوم.';
+        
+        canvas.parentNode.appendChild(errorMsg);
+        loading.classList.add('hidden');
     }
 }
 
@@ -137,7 +176,6 @@ export function showOpenOptions(item) {
     const fileName = item.path.split('/').pop();
     const url = `${RAW_CONTENT_BASE}${item.path}`;
 
-    // ✅ إظهار الـ popup بشكل صحيح - إزالة hidden وإضافة display
     popup.classList.remove('hidden');
     popup.style.display = 'flex';
 
@@ -156,7 +194,7 @@ export function showOpenOptions(item) {
 
     console.log('📋 عرض خيارات الفتح:', url);
 
-    // تحميل المعاينة في الخلفية
+    // تحميل معاينة مصغرة في الخلفية (بنفس الطريقة المحسنة ولكن بدقة أقل)
     if (canvas) {
         (async () => {
             try {
@@ -164,14 +202,25 @@ export function showOpenOptions(item) {
                     throw new Error('PDF.js غير محمل');
                 }
 
-                const loadingTask = pdfjsLib.getDocument(url);
+                const loadingTask = pdfjsLib.getDocument({
+                    url: url,
+                    cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
+                    cMapPacked: true,
+                    disableRange: true,
+                    disableStream: true,
+                    disableAutoFetch: true
+                });
+                
                 const pdf = await loadingTask.promise;
                 const page = await pdf.getPage(1);
-                const viewport = page.getViewport({ scale: 1.5 });
+                const viewport = page.getViewport({ scale: 1.5 }); // دقة متوسطة للمعاينة المصغرة
 
-                const context = canvas.getContext('2d');
-                canvas.height = viewport.height;
                 canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                const context = canvas.getContext('2d', { alpha: false });
+                context.fillStyle = 'white';
+                context.fillRect(0, 0, canvas.width, canvas.height);
 
                 await page.render({ canvasContext: context, viewport }).promise;
 
@@ -181,21 +230,19 @@ export function showOpenOptions(item) {
                 }
                 canvas.style.display = 'block';
             } catch (error) {
-                console.error('❌ خطأ في المعاينة:', error);
+                console.error('❌ خطأ في المعاينة المصغرة:', error);
                 if (loading) loading.textContent = '❌ فشل التحميل';
             }
         })();
     }
 }
 
-// ✅ إغلاق صحيح - بيرجع hidden ويشيل display
 export function closeOpenOptions() {
     const popup = document.getElementById('open-method-popup');
     if (popup) {
         popup.classList.add('hidden');
         popup.style.display = 'none';
     }
-    // لا نمسح currentPreviewItem هنا عشان أزرار الفتح تشتغل
 }
 
 // ---------- طرق الفتح ----------
@@ -223,11 +270,9 @@ export function openWithMozilla(item) {
         return;
     }
 
-    // ✅ إظهار الـ overlay بشكل صحيح
     overlay.classList.remove("hidden");
     overlay.style.display = 'flex';
 
-    // ✅ reset الـ zoom لـ 1x عند فتح PDF
     resetBrowserZoom();
 
     pdfViewer.src = "https://mozilla.github.io/pdf.js/web/viewer.html?file=" +
@@ -237,7 +282,6 @@ export function openWithMozilla(item) {
         trackSvgOpen(item.path);
     }
 
-    // ✅ إغلاق الـ popup بعد فتح الـ overlay
     closeOpenOptions();
     console.log('📄 فتح بـ Mozilla:', url);
 }
@@ -257,7 +301,7 @@ export function openWithDrive(item) {
     }
 
     closeOpenOptions();
-    console.log('💾 فتح بـ Google Drive:', url);
+    console.log('💾 فتح بـ Google Drive:', driveUrl);
 }
 
 export function openWithBrowser(item) {
@@ -267,6 +311,7 @@ export function openWithBrowser(item) {
     }
 
     const url = `${RAW_CONTENT_BASE}${item.path}`;
+    // الرابط المباشر - كل متصفح يتعامل مع PDF بطريقته الخاصة
     window.open(url, '_blank');
 
     if (typeof trackSvgOpen === 'function') {
@@ -274,7 +319,7 @@ export function openWithBrowser(item) {
     }
 
     closeOpenOptions();
-    console.log('🌐 فتح بالمتصفح:', url);
+    console.log('🌐 فتح بالمتصفح (رابط مباشر):', url);
 }
 
 export function toggleMozillaToolbar() {
@@ -304,7 +349,6 @@ export function smartOpen(item) {
 // ---------- تهيئة مستمعات الأحداث ----------
 export function initPDFViewer() {
 
-    // ---- أزرار معاينة PDF ----
     const closePreviewBtn = document.getElementById('preview-close-btn');
     const openFromPreviewBtn = document.getElementById('preview-open-btn');
     const previewPopup = document.getElementById('pdf-preview-popup');
@@ -322,7 +366,6 @@ export function initPDFViewer() {
             if (currentPreviewItem) {
                 const item = currentPreviewItem;
                 closePDFPreview();
-                // تأخير بسيط عشان الـ close يخلص قبل ما الـ open يشتغل
                 setTimeout(() => showOpenOptions(item), 50);
             }
         });
@@ -336,7 +379,6 @@ export function initPDFViewer() {
         });
     }
 
-    // ---- أزرار popup خيارات الفتح ----
     const methodPopup = document.getElementById('open-method-popup');
     const methodCloseBtn = document.getElementById('method-close-btn');
     const mozillaBtn = document.getElementById('open-mozilla-btn');
@@ -351,7 +393,6 @@ export function initPDFViewer() {
         });
     }
 
-    // ✅ إغلاق عند الضغط خارج الـ container
     if (methodPopup) {
         methodPopup.addEventListener('click', (e) => {
             if (e.target === methodPopup) {
@@ -397,7 +438,6 @@ export function initPDFViewer() {
         });
     }
 
-    // ---- أزرار عارض PDF الرئيسي ----
     const closePdfBtn = document.getElementById('closePdfBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const shareBtn = document.getElementById('shareBtn');
@@ -413,7 +453,6 @@ export function initPDFViewer() {
                 pdfOverlay.style.display = 'none';
             }
             if (pdfFrame) pdfFrame.src = '';
-            // ✅ reset الـ zoom لـ 1x عند إغلاق PDF
             resetBrowserZoom();
             popNavigationState();
         });
