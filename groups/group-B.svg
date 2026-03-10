@@ -10,20 +10,46 @@ p<!-- groups/group-B.svg -->
 </g>
 <!-- Sunday 01 -->
 <g transform="translate(253,0)" >
+
+<rect x="0" y="846" height="452.8" class="m w" data-index="1"></rect>
+
 </g>
 <!-- Monday 01 -->
 <g transform="translate(368,0)" >
+
+<rect x="0" y="412" height="433.2761086162366" class="m w" data-index="2"></rect>
+
+<rect x="0" y="1298.7908513478865" height="381.8321736089779" class="m w" data-index="3"></rect>
+
+<rect x="0" y="1683.0038211497224" height="430.3572546710186" class="m w" data-index="4"></rect>
+
 </g>
 <!-- Tuesday 01 -->
 <g transform="translate(484,0)" >
+
+<rect x="0" y="412.6348863182374" height="432.0818828731946" class="m w" data-index="5"></rect>
+
+<rect x="0" y="845.3871541552453" height="452.0840704558243" class="m w" data-index="6"></rect>
+
 </g>
 <!-- Wednesday 01 -->
 <g transform="translate(598,0)" >
+
+<rect x="0" y="412.20145090661407" height="431.27078632915715" class="m w" data-index="7"></rect>
+
+<rect x="0" y="1298.6814900161062" height="382.39975892091843" class="m w" data-index="8"></rect>
+
 </g>
 <!-- Thursday 01 -->
 <g transform="translate(713,0)" >
+
+<rect x="0" y="413.5385754565154" height="430.1658723404027" class="m w" data-index="9"></rect>
+
+<rect x="0" y="1299.5676813412995" height="381.8617011685592" class="m w" data-index="10"></rect>
+
 </g>
 </g>
+
 <!-- الاسبوع الثاني -->
 <g transform="translate(2048,0)">
     <image data-src="image/B/02.webp" width="1024" height="2454" />
