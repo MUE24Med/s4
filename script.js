@@ -1,9 +1,9 @@
-// ============================================
-// script.js - نقطة الدخول الرئيسية (ES Module)
-// ============================================
+/* ========================================
+   script.js - نقطة الدخول الرئيسية (ES Module)
+   ======================================== */
 
 import { initPreloadSystem } from './javascript/features/preload-game.js';
-import { setupBackButton } from './javascript/core/navigation.js';
+import { setupBackButton } from './javascript/core/back-button.js'; // ✅ زر الرجوع الموحد
 import { preventInteractionWhenHidden, initWoodUI, updateWelcomeMessages } from './javascript/ui/wood-interface.js';
 import { initPDFViewer } from './javascript/ui/pdf-viewer.js';
 import { initializeGroup, loadSelectedGroup } from './javascript/core/group-loader.js';
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autoLoadLastGroup();
 
         // تهيئة المكونات
-        setupBackButton();
+        setupBackButton();                // ✅ زر الرجوع الجديد
         preventInteractionWhenHidden();
         initWoodUI();
         initPDFViewer();
