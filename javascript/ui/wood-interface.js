@@ -20,6 +20,7 @@ import {
     setupInteractionToggle
 } from './ui-controls.js';
 import { setupSearchInput, setupEyeToggleSystem } from './search-and-eye.js';
+import { setFolderOpen } from '../core/back-button.js'; // ✅ استيراد دالة تحديث حالة المجلد
 
 // ---------- متغير التفاعل ----------
 export let interactionEnabled = true;
@@ -343,6 +344,7 @@ export async function updateWoodInterface() {
                         resetBrowserZoom();
                         if (item.type === 'dir') {
                             setCurrentFolder(item.path);
+                            setFolderOpen(true); // ✅ تحديث حالة المجلد
                             updateWoodInterface();
                         } else {
                             smartOpen(item);
@@ -359,6 +361,7 @@ export async function updateWoodInterface() {
                     resetBrowserZoom();
                     if (item.type === 'dir') {
                         setCurrentFolder(item.path);
+                        setFolderOpen(true); // ✅ تحديث حالة المجلد
                         updateWoodInterface();
                     } else {
                         smartOpen(item);
@@ -591,10 +594,10 @@ export function initWoodUI() {
     setupResetButton();
     setupMoveToggleButton();
     setupSearchIcon();
-    
+
     // تمرير دالة getter بدلاً من القيمة المباشرة
     setupBackButtonInSVG(() => currentFolder, setCurrentFolder, updateWoodInterface);
-    
+
     setupInteractionToggle();
     setupSearchInput(updateWoodInterface);
     setupEyeToggleSystem();
