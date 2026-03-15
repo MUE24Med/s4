@@ -1,13 +1,5 @@
 /* ========================================
    back-button.js – زر الرجوع الموحد (يدعم زر المتصفح)
-   ========================================
-   يقوم هذا الملف بتهيئة زر الرجوع الموجود في SVG
-   كما يتعامل مع زر الرجوع في المتصفح (popstate)
-   ليؤدي الوظائف التالية عند النقر أو الضغط على زر الرجوع:
-   1. إغلاق عارض PDF إذا كان مفتوحاً
-   2. إغلاق الفولدر المفتوح (مسح محتوى المجموعة)
-   3. التمرير إلى أقصى اليسار (الخريطة الرئيسية)
-   4. إعادة تعيين حالة البحث والتفاعلات
    ======================================== */
 
 // متغيرات لتتبع حالة الفتح
@@ -54,26 +46,17 @@ function handleBackClick(e) {
 function handlePopState(event) {
     console.log('🔙 زر الرجوع في المتصفح', event.state);
 
-    // إذا كانت هناك حالة خاصة تشير إلى أننا في وضع مفتوح، ننفذ الإجراء
     if (isFolderOpen || isPDFOpen || isPopupOpen) {
-        // ننفذ إجراء الرجوع
         performBackAction();
 
-        // نعيد دفع الحالة السابقة لمنع الخروج من الصفحة
-        // لكن يجب أن نكون حذرين: هذا قد يسبب تكراراً
-        // الحل الأفضل: بعد تنفيذ الإجراء، نتحقق مما إذا كان لا يزال هناك شيء مفتوح
-        // إذا لم يعد هناك شيء مفتوح، نسمح بالخروج (أو ندفع حالة جديدة)
+        // بعد الإغلاق، ندفع حالة جديدة إذا بقي شيء مفتوح
         if (isFolderOpen || isPDFOpen || isPopupOpen) {
-            // لا يزال هناك شيء مفتوح؟ نعيد دفع نفس الحالة أو حالة جديدة
             history.pushState({ appState: 'still-open' }, '');
         } else {
-            // كل شيء مغلق، ندفع حالة main
             history.pushState({ appState: 'main' }, '');
         }
     } else {
-        // لا يوجد شيء مفتوح، نسمح بالخروج الطبيعي
         console.log('لا يوجد شيء مفتوح، سيغادر الصفحة');
-        // لا نفعل شيئاً، سيغادر المتصفح الصفحة
     }
 }
 
@@ -104,7 +87,7 @@ function performBackAction() {
     // 5️⃣ إعادة تعيين واجهة المستخدم
     resetUI();
 
-    // 6️⃣ تحديث الحالة
+    // 6️⃣ تحديث الحالة (للتأكد)
     updateOpenStates();
 }
 
@@ -118,10 +101,8 @@ function performBackAction() {
 export function setFolderOpen(open = true) {
     isFolderOpen = open;
     if (open) {
-        // دفع حالة جديدة إلى history
         history.pushState({ appState: 'folder' }, '');
     } else {
-        // إذا تم الإغلاق بواسطة وسيلة أخرى، نعدل الحالة
         updateHistoryAfterClose();
     }
 }
@@ -154,12 +135,8 @@ export function setPopupOpen(open = true) {
  * تحديث history بعد إغلاق أي عنصر
  */
 function updateHistoryAfterClose() {
-    // إذا لم يعد هناك أي شيء مفتوح، ندفع حالة main
     if (!isFolderOpen && !isPDFOpen && !isPopupOpen) {
         history.pushState({ appState: 'main' }, '');
-    } else {
-        // لا يزال هناك شيء مفتوح، ندفع حالة مناسبة (يمكن أن تكون آخر شيء مفتوح)
-        // لكن هذا ليس ضرورياً لأن history سيكون له حالة بالفعل
     }
 }
 
@@ -171,19 +148,45 @@ function updateOpenStates() {
     if (isFolderOpen || isPDFOpen || isPopupOpen) {
         // إذا كان أي منها لا يزال مفتوحاً (بسبب خطأ) نغلقه بالقوة
         if (isFolderOpen) {
-            document.getElementById('group-specific-content').innerHTML = '';
-            isFolderOpen = false;
+            forceCloseFolder();
         }
         if (isPDFOpen) {
-            document.getElementById('pdf-overlay')?.classList.add('hidden');
-            isPDFOpen = false;
+            forceClosePDF();
         }
         if (isPopupOpen) {
-            document.getElementById('pdf-preview-popup')?.classList.remove('active');
-            document.getElementById('open-method-popup')?.classList.remove('active');
-            isPopupOpen = false;
+            forceClosePopups();
         }
     }
+}
+
+// دوال القوة الإضافية للإغلاق الجبري
+function forceCloseFolder() {
+    const groupContent = document.getElementById('group-specific-content');
+    if (groupContent) groupContent.innerHTML = '';
+    document.querySelectorAll('.wood-folder-group.active-folder').forEach(el => {
+        el.classList.remove('active-folder');
+    });
+    localStorage.removeItem('current_open_folder');
+    isFolderOpen = false;
+    console.log('📁 تم إغلاق الفولدر جبرياً');
+}
+
+function forceClosePDF() {
+    const pdfOverlay = document.getElementById('pdf-overlay');
+    if (pdfOverlay && !pdfOverlay.classList.contains('hidden')) {
+        pdfOverlay.classList.add('hidden');
+        const pdfFrame = document.getElementById('pdfFrame');
+        if (pdfFrame) pdfFrame.src = '';
+    }
+    isPDFOpen = false;
+}
+
+function forceClosePopups() {
+    const previewPopup = document.getElementById('pdf-preview-popup');
+    if (previewPopup) previewPopup.classList.remove('active');
+    const methodPopup = document.getElementById('open-method-popup');
+    if (methodPopup) methodPopup.classList.remove('active');
+    isPopupOpen = false;
 }
 
 // ========================================
@@ -199,7 +202,6 @@ function closePDFViewer() {
         pdfOverlay.classList.add('hidden');
         console.log('📄 تم إغلاق عارض PDF');
 
-        // إلغاء تحميل PDF من الإطار
         const pdfFrame = document.getElementById('pdfFrame');
         if (pdfFrame) {
             pdfFrame.src = '';
@@ -212,18 +214,32 @@ function closePDFViewer() {
  * إغلاق الفولدر المفتوح وإزالة محتوى المجموعة
  */
 function closeOpenFolder() {
+    // 1. تفريغ محتوى المجموعة (الملفات داخل الفولدر)
     const groupContent = document.getElementById('group-specific-content');
     if (groupContent) {
         groupContent.innerHTML = '';
         console.log('📁 تم إغلاق الفولدر وإزالة محتواه');
     }
 
-    // إزالة أي كلاسات نشطة
+    // 2. إزالة أي كلاسات تشير إلى فولدر نشط
     document.querySelectorAll('.wood-folder-group.active-folder').forEach(el => {
         el.classList.remove('active-folder');
     });
 
+    // 3. إزالة أي بيانات محفوظة عن الفولدر المفتوح
     localStorage.removeItem('current_open_folder');
+
+    // 4. إعادة ضبط أي متغيرات عامة قد تكون ذات صلة
+    if (window.__currentFolderPath) {
+        window.__currentFolderPath = null;
+    }
+
+    // 5. إعادة تعيين أي روابط ديناميكية أو عناصر إضافية
+    const dynamicLinks = document.getElementById('dynamic-links-group');
+    if (dynamicLinks) {
+        // قد تحتاج إلى تنظيفها حسب الحاجة
+    }
+
     isFolderOpen = false;
 }
 
