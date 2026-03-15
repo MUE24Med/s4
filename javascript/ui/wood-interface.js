@@ -16,7 +16,6 @@ import {
     setupResetButton,
     setupMoveToggleButton,
     setupSearchIcon,
-    setupBackButtonInSVG,
     setupInteractionToggle
 } from './ui-controls.js';
 import { setupSearchInput, setupEyeToggleSystem } from './search-and-eye.js';
@@ -595,8 +594,7 @@ export function initWoodUI() {
     setupMoveToggleButton();
     setupSearchIcon();
 
-    // تمرير دالة getter بدلاً من القيمة المباشرة
-    setupBackButtonInSVG(() => currentFolder, setCurrentFolder, updateWoodInterface);
+    // ❌ تم إزالة استدعاء setupBackButtonInSVG
 
     setupInteractionToggle();
     setupSearchInput(updateWoodInterface);
