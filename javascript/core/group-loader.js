@@ -1,13 +1,11 @@
 // ============================================
 // group-loader.js - تحميل المجموعات والصور و SVG
-// مع دعم إغلاق الفولدر عبر back-button.js
 // ============================================
 
 import { RAW_CONTENT_BASE, REPO_NAME, GITHUB_USER, TREE_API_URL, NAV_STATE } from './config.js';
 import { getDisplayName, debounce, resetBrowserZoom } from './utils.js';
 import { pushNavigationState, goToWood } from './navigation.js';
 import { setCurrentGroup, setCurrentFolder, setGlobalFileTree, globalFileTree, currentGroup, currentFolder } from './state.js';
-import { setFolderOpen } from './back-button.js'; // ✅ استيراد دالة تحديث حالة الفولدر
 
 // ---------- متغيرات داخلية للتحميل ----------
 let imageUrlsToLoad = [];
@@ -443,31 +441,4 @@ export function updateDynamicSizes() {
 
     mainSvg.setAttribute('viewBox', `0 0 ${maxX} ${maxY}`);
     console.log(`✅ viewBox محدّث ديناميكيًا: 0 0 ${maxX} ${maxY}`);
-}
-
-// ============================================
-// دالة فتح الفولدر (مثال توضيحي)
-// ============================================
-/**
- * يجب استدعاء هذه الدالة عند فتح أي فولدر في الخريطة.
- * @param {string} folderPath - مسار الفولدر المراد فتحه.
- */
-export function openFolder(folderPath) {
-    // ... كود تحميل محتوى الفولدر داخل group-specific-content ...
-
-    // ✅ بعد عرض المحتوى بنجاح، قم بتحديث حالة الفولدر
-    setFolderOpen(true);
-    console.log('📂 تم فتح الفولدر:', folderPath);
-}
-
-/**
- * دالة إغلاق الفولدر (يمكن استدعاؤها يدوياً إذا لزم الأمر)
- */
-export function closeFolder() {
-    const groupContent = document.getElementById('group-specific-content');
-    if (groupContent) {
-        groupContent.innerHTML = '';
-    }
-    setFolderOpen(false);
-    console.log('📁 تم إغلاق الفولدر');
 }
