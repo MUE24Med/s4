@@ -7,6 +7,7 @@
 import { RAW_CONTENT_BASE, NAV_STATE } from '../core/config.js';
 import { pushNavigationState, popNavigationState } from '../core/navigation.js';
 import { resetBrowserZoom } from '../core/utils.js';
+import { setPDFOpen } from '../core/back-button.js'; // ✅ استيراد دالة تحديث حالة PDF
 
 export let currentPreviewItem = null;
 export let isToolbarExpanded = false;
@@ -77,7 +78,7 @@ export async function showPDFPreview(item) {
             disableStream: true,
             disableAutoFetch: true
         });
-        
+
         const pdf = await loadingTask.promise;
         console.log('📄 PDF محمل:', pdf.numPages, 'صفحة');
 
@@ -124,20 +125,20 @@ export async function showPDFPreview(item) {
 
         loading.classList.add('hidden');
         loading.style.display = 'none';
-        
+
         console.log('✅ تم تحويل المعاينة إلى صورة PNG عالية الجودة');
 
     } catch (error) {
         console.error('❌ خطأ في المعاينة:', error);
         loading.textContent = '❌ فشل تحميل المعاينة';
-        
+
         // عرض رسالة خطأ بديلة
         const errorMsg = document.createElement('div');
         errorMsg.style.color = 'red';
         errorMsg.style.padding = '20px';
         errorMsg.style.textAlign = 'center';
         errorMsg.textContent = 'تعذر تحميل المعاينة. قد يكون الملف تالفاً أو غير مدعوم.';
-        
+
         canvas.parentNode.appendChild(errorMsg);
         loading.classList.add('hidden');
     }
@@ -216,7 +217,7 @@ export function showOpenOptions(item) {
                     disableStream: true,
                     disableAutoFetch: true
                 });
-                
+
                 const pdf = await loadingTask.promise;
                 const page = await pdf.getPage(1);
                 const viewport = page.getViewport({ scale: 1.5 }); // دقة متوسطة للمعاينة المصغرة
@@ -294,6 +295,9 @@ export function openWithMozilla(item) {
     pdfViewer.src = "https://mozilla.github.io/pdf.js/web/viewer.html?file=" +
         encodeURIComponent(url) + "#zoom=page-fit";
 
+    // ✅ تحديث حالة PDF مفتوح
+    setPDFOpen(true);
+
     if (typeof trackSvgOpen === 'function') {
         trackSvgOpen(item.path);
     }
@@ -361,11 +365,11 @@ export function toggleMozillaToolbar() {
 export function togglePdfToolbar() {
     const toolbar = document.getElementById('toolbar');
     const eyeBtn = document.getElementById('pdf-eye-draggable');
-    
+
     if (!toolbar || !eyeBtn) return;
-    
+
     isPdfToolbarHidden = !isPdfToolbarHidden;
-    
+
     if (isPdfToolbarHidden) {
         toolbar.style.display = 'none';
         eyeBtn.classList.add('active');
@@ -381,54 +385,54 @@ export function togglePdfToolbar() {
 function startDrag(e) {
     const eyeBtn = document.getElementById('pdf-eye-draggable');
     if (!eyeBtn) return;
-    
+
     dragActive = true;
     eyeBtn.classList.add('dragging');
-    
+
     // تحديد إحداثيات البداية
     const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
     const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-    
+
     startX = clientX;
     startY = clientY;
-    
+
     // الحصول على الموقع الحالي للزر
     const rect = eyeBtn.getBoundingClientRect();
     initialLeft = rect.left;
     initialTop = rect.top;
-    
+
     // منع السلوك الافتراضي
     e.preventDefault();
 }
 
 function onDrag(e) {
     if (!dragActive) return;
-    
+
     const eyeBtn = document.getElementById('pdf-eye-draggable');
     if (!eyeBtn) return;
-    
+
     const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
     const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-    
+
     const deltaX = clientX - startX;
     const deltaY = clientY - startY;
-    
+
     // تحديث موقع الزر
     eyeBtn.style.left = (initialLeft + deltaX) + 'px';
     eyeBtn.style.top = (initialTop + deltaY) + 'px';
     eyeBtn.style.right = 'auto'; // إلغاء الخاصية right لأننا نستخدم left
-    
+
     e.preventDefault();
 }
 
 function stopDrag(e) {
     if (!dragActive) return;
-    
+
     const eyeBtn = document.getElementById('pdf-eye-draggable');
     if (eyeBtn) {
         eyeBtn.classList.remove('dragging');
     }
-    
+
     dragActive = false;
     e.preventDefault();
 }
@@ -548,6 +552,9 @@ export function initPDFViewer() {
             if (pdfFrame) pdfFrame.src = '';
             resetBrowserZoom();
             popNavigationState();
+
+            // ✅ تحديث حالة PDF مغلق
+            setPDFOpen(false);
         });
     }
 
@@ -598,13 +605,13 @@ export function initPDFViewer() {
         pdfEyeDraggable.addEventListener('mousedown', startDrag);
         window.addEventListener('mousemove', onDrag);
         window.addEventListener('mouseup', stopDrag);
-        
+
         // أحداث اللمس
         pdfEyeDraggable.addEventListener('touchstart', startDrag, { passive: false });
         window.addEventListener('touchmove', onDrag, { passive: false });
         window.addEventListener('touchend', stopDrag);
         window.addEventListener('touchcancel', stopDrag);
-        
+
         // وظيفة النقر (تبديل إخفاء/إظهار شريط الأدوات) - مع التأكد من أنها ليست سحبًا
         pdfEyeDraggable.addEventListener('click', (e) => {
             if (!dragActive) {
