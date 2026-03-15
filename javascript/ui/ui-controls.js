@@ -101,7 +101,28 @@ export function setupSearchIcon() {
     }
 }
 
-// ❌ تمت إزالة دالة setupBackButtonInSVG لأن back-button.js هو المسؤول الآن
+export function setupBackButtonInSVG(getCurrentFolder, setCurrentFolder, updateWoodInterface) {
+    const backButtonGroup = document.getElementById('back-button-group');
+    if (backButtonGroup) {
+        backButtonGroup.onclick = (e) => {
+            e.stopPropagation();
+
+            // الحصول على القيمة الحالية في كل نقرة
+            const folder = getCurrentFolder();
+
+            if (folder !== "") {
+                console.log('📂 زر SVG: العودة للمجلد الأب');
+                const parts = folder.split('/');
+                parts.pop();
+                setCurrentFolder(parts.join('/'));
+                updateWoodInterface();
+            } else {
+                console.log('🗺️ زر SVG: الذهاب لنهاية الخريطة');
+                goToMapEnd();
+            }
+        };
+    }
+}
 
 export function setupInteractionToggle() {
     const jsToggle = document.getElementById('js-toggle');
