@@ -53,23 +53,46 @@ p<!-- groups/group-B.svg -->
 <!-- الاسبوع الثاني -->
 <g transform="translate(2048,0)">
     <image data-src="image/B/02.webp" width="1024" height="2454" />
-<!-- Saturday 02 -->
+
+<!-- Saturday 02 السبت -->
 <g transform="translate(140,0)" >
+
 </g>
-<!-- Sunday 02 -->
+<!-- Sunday 02 الأحد -->
 <g transform="translate(253,0)" >
+
+<rect x="0" y="841.0" height="461.4" class="m w l" data-href="1"/>
+
 </g>
-<!-- Monday 02 -->
+<!-- Monday 02 الإثنين -->
 <g transform="translate(368,0)" >
+
+<rect x="0" y="422" height="417" class="m w l" data-href="2"/>
+
+<rect x="0" y="1303" height="391" class="m w l" data-href="3"/>
+
+<rect x="0" y="1696" height="419" class="m w l" data-href="4"/>
+
 </g>
-<!-- Tuesday 02 -->
+<!-- Tuesday 02 الثلاثاء -->
 <g transform="translate(484,0)" >
+
+<rect x="0" y="422" height="418" class="m w l" data-href="5"/>
+
+<rect x="0" y="840" height="463" class="m w l" data-href="6"/>
+
 </g>
-<!-- Wednesday 02 -->
+<!-- Wednesday 02 الأربع -->
 <g transform="translate(598,0)" >
+
+<rect x="0" y="841" height="462" class="m w l" data-href="7"/>
+
+<rect x="0" y="1695" height="419" class="m w l" data-href="8"/>
+
 </g>
-<!-- Thursday 02 -->
+<!-- Thursday 01 الخميس -->
 <g transform="translate(713,0)" >
+
 </g>
 </g>
 <g id="dynamic-links-group"></g>
