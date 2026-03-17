@@ -61,33 +61,33 @@ p<!-- groups/group-B.svg -->
 <!-- Sunday 02 الأحد -->
 <g transform="translate(253,0)" >
 
-<rect x="0" y="841.0" height="461.4" class="m w l" data-href="1"/>
+<rect x="0" y="841" height="461" class="m w" data-href="1"/>
 
 </g>
 <!-- Monday 02 الإثنين -->
 <g transform="translate(368,0)" >
 
-<rect x="0" y="422" height="417" class="m w l" data-href="2"/>
+<rect x="0" y="422" height="417" class="m w" data-href="2"/>
 
-<rect x="0" y="1303" height="391" class="m w l" data-href="3"/>
+<rect x="0" y="1303" height="391" class="m w" data-href="3"/>
 
-<rect x="0" y="1696" height="419" class="m w l" data-href="4"/>
+<rect x="0" y="1696" height="419" class="m w" data-href="4"/>
 
 </g>
 <!-- Tuesday 02 الثلاثاء -->
 <g transform="translate(484,0)" >
 
-<rect x="0" y="422" height="418" class="m w l" data-href="5"/>
+<rect x="0" y="422" height="418" class="m w" data-href="5"/>
 
-<rect x="0" y="840" height="463" class="m w l" data-href="6"/>
+<rect x="0" y="840" height="463" class="m w" data-href="6"/>
 
 </g>
 <!-- Wednesday 02 الأربع -->
 <g transform="translate(598,0)" >
 
-<rect x="0" y="841" height="462" class="m w l" data-href="7"/>
+<rect x="0" y="841" height="462" class="m w" data-href="7"/>
 
-<rect x="0" y="1695" height="419" class="m w l" data-href="8"/>
+<rect x="0" y="1695" height="419" class="m w" data-href="8"/>
 
 </g>
 <!-- Thursday 01 الخميس -->
