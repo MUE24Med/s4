@@ -40,7 +40,7 @@
 <rect x="0" y="1298" height="382" class="m w" data-href="8"/>
 
 </g>
-<!-- Thursday 01 الخميس -->
+<!-- Thursday 02 الخميس -->
 <g transform="translate(713,0)" >
 
 <rect x="0" y="0413" height="430" class="m w" data-href="9"/>
@@ -54,6 +54,35 @@
 <g transform="translate(2048,0)">
     <image data-src="image/B/02.webp" width="1024" height="2454" />
 
+<!-- Tuesday 03 الثلاثاء -->
+<g transform="translate(484,0)" >
+
+<rect x="0" y="0512" height="699" class="m w l" data-href="5"/>
+
+<rect x="0" y="1211" height="704" class="m w l" data-href="6"/>
+
+</g>
+<!-- Wednesday 03 الأربع -->
+<g transform="translate(598,0)" >
+
+<rect x="0" y="0512" height="699" class="m w l" data-href="7"/>
+
+<rect x="0" y="1211" height="704" class="m w l" data-href="HIC/L/F/7-CAD and DM.pdf"/>
+
+</g>
+<!-- Thursday 03 الخميس -->
+<g transform="translate(713,0)" >
+
+<rect x="0" y="0512" height="699" class="m w l" data-href="7"/>
+
+<rect x="0" y="1211" height="704" class="m w l" data-href="HIC/L/F/7-CAD and DM.pdf"/>
+
+</g>
+</g>
+
+<!-- الاسبوع الثالث -->
+<g transform="translate(3072,0)">
+    <image data-src="image/B/03.webp" width="1024" height="2454" />
 <!-- Saturday 02 السبت -->
 <g transform="translate(140,0)" >
 
@@ -94,12 +123,6 @@
 <g transform="translate(713,0)" >
 
 </g>
-</g>
-
-<!-- الاسبوع الثالث -->
-<g transform="translate(3072,0)">
-    <image data-src="image/B/03.webp" width="1024" height="2454" />
-
 </g>
 <g id="dynamic-links-group"></g>
 </svg>
