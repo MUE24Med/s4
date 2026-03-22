@@ -110,15 +110,15 @@
 
 <rect x="0" y="0512" height="699" class="m w l" data-href="7"/>
 
-<rect x="0" y="1211" height="704" class="m w l" data-href="HIC/L/F/7-CAD and DM.pdf"/>
+<rect x="0" y="1211" height="704" class="m w l" data-href="3"/>
 
 </g>
 <!-- Thursday 03 الخميس -->
 <g transform="translate(713,0)" >
 
-<rect x="0" y="0512" height="699" class="m w l" data-href="7"/>
+<rect x="0" y="0512" height="699" class="m w" data-href="5"/>
 
-<rect x="0" y="1211" height="704" class="m w l" data-href="HIC/L/F/7-CAD and DM.pdf"/>
+<rect x="0" y="1211" height="704" class="m w" data-href="6"/>
 
 </g></g>
 <g id="dynamic-links-group"></g>
