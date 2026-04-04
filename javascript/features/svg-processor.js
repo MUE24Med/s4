@@ -3,9 +3,14 @@
 // ============================================
 
 import { RAW_CONTENT_BASE, isTouchDevice, TAP_THRESHOLD_MS } from '../core/config.js';
-import { interactionEnabled } from '../ui/wood-interface.js';
+import * as woodInterface from '../ui/wood-interface.js'; // ✅ استيراد كامل للموديول
 import { getCumulativeTranslate, getGroupImage, wrapText, addShownError, hasShownError } from '../core/utils.js';
 import { smartOpen } from '../ui/pdf-viewer.js';
+
+// ✅ getter يقرأ القيمة الحالية من الموديول في كل مرة
+function isInteractionEnabled() {
+    return woodInterface.interactionEnabled;
+}
 
 // حالة التكبير الحالية
 export let activeState = {
@@ -36,7 +41,7 @@ export function cleanupHover() {
 
 // ---------- بدء تأثير الهوفر ----------
 export function startHover() {
-    if (!interactionEnabled || this.classList.contains('list-item')) return;
+    if (!isInteractionEnabled() || this.classList.contains('list-item')) return; // ✅
     const mainSvg = document.getElementById('main-svg');
     const clipDefs = mainSvg?.querySelector('defs');
     if (!mainSvg || !clipDefs) return;
@@ -173,7 +178,6 @@ export function processRect(r) {
     const name = dataFull || fileName || '';
 
     const w = parseFloat(r.getAttribute('width')) || r.getBBox().width;
-
     const x = parseFloat(r.getAttribute('x')) || 0;
     const y = parseFloat(r.getAttribute('y')) || 0;
 
@@ -233,13 +237,13 @@ export function processRect(r) {
     const scrollContainer = document.getElementById('scroll-container');
     if (scrollContainer) {
         r.addEventListener('touchstart', function (e) {
-            if (!interactionEnabled) return;
+            if (!isInteractionEnabled()) return; // ✅
             activeState.touchStartTime = Date.now();
             activeState.initialScrollLeft = scrollContainer.scrollLeft;
             startHover.call(this);
         });
         r.addEventListener('touchend', async function (e) {
-            if (!interactionEnabled) return;
+            if (!isInteractionEnabled()) return; // ✅
             if (Math.abs(scrollContainer.scrollLeft - activeState.initialScrollLeft) < 10 &&
                 (Date.now() - activeState.touchStartTime) < TAP_THRESHOLD_MS) {
                 if (href && href !== '#') {
@@ -288,7 +292,6 @@ export function scan() {
         }
     });
 
-    // مراقب الإضافات الجديدة
     if (!window.svgObserver) {
         const observer = new MutationObserver((mutations) => {
             let hasNewElements = false;
