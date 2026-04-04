@@ -1,4 +1,3 @@
-<!-- groups/group-B.svg -->
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 
@@ -10,43 +9,28 @@
 </g>
 <!-- Sunday 01 الأحد -->
 <g transform="translate(253,0)" >
-
 <rect x="0" y="0846" height="452" class="m w" data-href="1"/>
-
 </g>
 <!-- Monday 01 الإثنين -->
 <g transform="translate(368,0)" >
-
 <rect x="0" y="0412" height="433" class="m w" data-href="2"/>
-
 <rect x="0" y="1298" height="381" class="m w" data-href="3"/>
-
 <rect x="0" y="1683" height="430" class="m w" data-href="4"/>
-
 </g>
 <!-- Tuesday 01 الثلاثاء -->
 <g transform="translate(484,0)" >
-
 <rect x="0" y="0412" height="432" class="m w" data-href="5"/>
-
 <rect x="0" y="0845" height="452" class="m w" data-href="6"/>
-
 </g>
 <!-- Wednesday 01 الأربع -->
 <g transform="translate(598,0)" >
-
 <rect x="0" y="0412" height="431" class="m w" data-href="7"/>
-
 <rect x="0" y="1298" height="382" class="m w" data-href="8"/>
-
 </g>
 <!-- Thursday 02 الخميس -->
 <g transform="translate(713,0)" >
-
 <rect x="0" y="0413" height="430" class="m w" data-href="9"/>
-
 <rect x="0" y="1300" height="382" class="m w" data-href="10"/>
-
 </g></g>
 
 <!-- الاسبوع الثاني -->
@@ -54,149 +38,88 @@
     <image data-src="image/B/02.webp" width="1024" height="2454" />
 <!-- Saturday 02 السبت -->
 <g transform="translate(140,0)" >
-
 </g>
 <!-- Sunday 02 الأحد -->
 <g transform="translate(253,0)" >
-
 <rect x="0" y="0841" height="461" class="m w" data-href="1"/>
-
 </g>
 <!-- Monday 02 الإثنين -->
 <g transform="translate(368,0)" >
-
 <rect x="0" y="0422" height="417" class="m w" data-href="2"/>
-
 <rect x="0" y="1303" height="391" class="m w" data-href="3"/>
-
 <rect x="0" y="1696" height="419" class="m w" data-href="4"/>
-
 </g>
 <!-- Tuesday 02 الثلاثاء -->
 <g transform="translate(484,0)" >
-
 <rect x="0" y="0422" height="418" class="m w" data-href="5"/>
-
 <rect x="0" y="0840" height="463" class="m w" data-href="6"/>
-
 </g>
 <!-- Wednesday 02 الأربع -->
 <g transform="translate(598,0)" >
-
 <rect x="0" y="0841" height="462" class="m w" data-href="7"/>
-
 <rect x="0" y="1695" height="419" class="m w l" data-href="HIC/Lecture/Fouad/7-CAD and DM.pdf"/>
-
 </g>
 <!-- Thursday 02 الخميس -->
 <g transform="translate(713,0)" >
-
 </g></g>
 
 <!-- الاسبوع الثالث -->
 <g transform="translate(3072,0)">
     <image data-src="image/B/03.webp" width="1024" height="2454" />
-
 <!-- Tuesday 03 الثلاثاء -->
 <g transform="translate(484,0)" >
-
 <rect x="0" y="0512" height="699" class="m w l" data-href="HIC/Lecture/Fouad/Environmental health.pdf"/>
-
 <rect x="0" y="1211" height="704" class="m w" data-href="2"/>
-
 </g>
 <!-- Wednesday 03 الأربع -->
 <g transform="translate(598,0)" >
-
 <rect x="0" y="0512" height="699" class="m w" data-href="3"/>
-
 <rect x="0" y="1211" height="704" class="m w" data-href="4"/>
-
 </g>
 <!-- Thursday 03 الخميس -->
 <g transform="translate(713,0)" >
-
 <rect x="0" y="0512" height="699" class="m w" data-href="5"/>
-
 <rect x="0" y="1211" height="704" class="m w" data-href="6"/>
-
 </g></g>
+
 <!-- الاسبوع الرابع -->
 <g transform="translate(4096,0)">
     <image data-src="image/B/04.webp" width="1024" height="2454" />
 </g>
+
 <!-- الاسبوع الخامس -->
 <g transform="translate(5120,0)">
     <image data-src="image/B/05.webp" width="1024" height="2454" />
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="253.35500505644862" y="315.76735761823016" width="114.25905624054221" height="477.93344391097713" class="image-mapper-shape" data-index="1"></rect>
+
+<!-- Sunday 05 الأحد -->
+<g transform="translate(253,0)">
+<rect x="0" y="315" height="478" class="m w" data-href="1"/>
+<rect x="0" y="794" height="490" class="m w" data-href="2"/>
+<rect x="0" y="1285" height="522" class="m w" data-href="4"/>
 </g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="254.94147344280918" y="794.6537032667867" width="111.79268480556544" height="490.24570718058396" class="image-mapper-shape" data-index="2"></rect>
+
+<!-- Monday 05 الإثنين -->
+<g transform="translate(368,0)">
+<rect x="0" y="314" height="478" class="m w" data-href="6"/>
+<rect x="0" y="1287" height="519" class="m w" data-href="7"/>
+<rect x="0" y="1807" height="397" class="m w" data-href="8"/>
+<rect x="0" y="2225" height="78"  class="m w" data-href="9"/>
 </g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="253.58163363295262" y="1285.7691975727973" width="113.90579635528087" height="522.6512924759711" class="image-mapper-shape" data-index="4"></rect>
+
+<!-- Tuesday 05 الثلاثاء -->
+<g transform="translate(484,0)">
+<rect x="0" y="314" height="474" class="m w" data-href="10"/>
+<rect x="0" y="792" height="493" class="m w" data-href="11"/>
+<rect x="0" y="1415" height="262" class="m w" data-href="12"/>
+<rect x="0" y="1809" height="395" class="m w" data-href="13"/>
 </g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="367.354054730683" y="314.7605042903051" width="115.49226474164146" height="478.0570222158897" class="image-mapper-shape" data-index="6"></rect>
+
+<!-- Thursday 05 الخميس -->
+<g transform="translate(713,0)">
+<rect x="0" y="315" height="478" class="m w" data-href="14"/>
+<rect x="0" y="1287" height="518" class="m w" data-href="15"/>
+<rect x="0" y="1807" height="399" class="m w" data-href="16"/>
 </g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="369.2538433325944" y="1287.3589467991114" width="113.74576427310893" height="519.7415519750671" class="image-mapper-shape" data-index="7"></rect>
+
 </g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="367.7406926057482" y="1807.9841383349653" width="115.3056214020695" height="397.6370732778764" class="image-mapper-shape" data-index="8"></rect>
-</g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="369.23383932232286" y="2225.1553326954518" width="113.4925016555942" height="78.07341929577751" class="image-mapper-shape" data-index="9"></rect>
-</g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="481.9669176631454" y="314.92782712792905" width="115.88605667049399" height="474.7109300011816" class="image-mapper-shape" data-index="10"></rect>
-</g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="482.82631546205295" y="792.6337994688039" width="113.1458718010719" height="493.4518168906119" class="image-mapper-shape" data-index="11"></rect>
-</g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="484.2595412822561" y="1415.5030873127594" width="112.30593120577737" height="262.8302758943969" class="image-mapper-shape" data-index="12"></rect>
-</g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="482.47307836040255" y="1809.1769059269166" width="114.05238610708801" height="395.51364075247443" class="image-mapper-shape" data-index="13"></rect>
-</g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="714.2257344977776" y="315.7775646758626" width="112.57855989246139" height="478.4583783035236" class="image-mapper-shape" data-index="14"></rect>
-</g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="713.7972203460847" y="1287.387016207602" width="112.02756104917466" height="518.7970346062577" class="image-mapper-shape" data-index="15"></rect>
-</g>
-</a>
-<a xlink:href="#" target="---" xlink:title="">
-<g>
-<rect x="713.9037565101276" y="1807.8193672617494" width="112.30597677299875" height="399.52209809999795" class="image-mapper-shape selected" data-index="16"></rect>
-</g>
-</a>
-<g id="dynamic-links-group"></g>
 </svg>
