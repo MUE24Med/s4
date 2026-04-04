@@ -578,6 +578,13 @@ html, body {
 .l { stroke: var(--color-l); }
 .is { stroke: var(--color-is); }
 
+/* مستطيلات بدون كلاس لون = خفية وغير قابلة للتفاعل */
+.m.w:not(.q):not(.v):not(.i):not(.a):not(.s):not(.l):not(.is) {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  cursor: default !important;
+}
+
 /* [003] شاشة اختيار المجموعة */
 #group-selection-screen {
   height: 100svh;
