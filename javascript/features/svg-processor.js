@@ -50,7 +50,6 @@ export function startHover() {
     const rH = parseFloat(rect.getAttribute('height')) || rect.getBBox().height;
     const cum = getCumulativeTranslate(rect);
 
-    // ✅ إصلاح NaN: إضافة || 0 لضمان قيمة رقمية دائماً
     const absX = (parseFloat(rect.getAttribute('x')) || 0) + cum.x;
     const absY = (parseFloat(rect.getAttribute('y')) || 0) + cum.y;
     const centerX = absX + rW / 2;
@@ -147,7 +146,6 @@ export function startHover() {
 }
 
 // ---------- معالجة مستطيل واحد ----------
-:
 export function processRect(r) {
     if (r.hasAttribute('data-processed')) return;
 
@@ -160,8 +158,6 @@ export function processRect(r) {
         r.setAttribute('data-processed', 'true');
         return;
     }
-export function processRect(r) {
-    if (r.hasAttribute('data-processed')) return;
 
     if (r.classList.contains('w')) r.setAttribute('width', '113.5');
     if (r.classList.contains('hw')) r.setAttribute('width', '56.75');
@@ -178,7 +174,6 @@ export function processRect(r) {
 
     const w = parseFloat(r.getAttribute('width')) || r.getBBox().width;
 
-    // ✅ إصلاح NaN: إضافة || 0 لضمان قيمة رقمية دائماً
     const x = parseFloat(r.getAttribute('x')) || 0;
     const y = parseFloat(r.getAttribute('y')) || 0;
 
@@ -315,7 +310,6 @@ export function scan() {
             });
             if (hasNewElements) {
                 console.log('🔄 تم اكتشاف عناصر جديدة - تحديث viewBox');
-                // ✅ إصلاح: الاستيراد من group-loader.js وليس wood-interface.js
                 import('../core/group-loader.js').then(({ updateDynamicSizes }) => {
                     updateDynamicSizes();
                 });
