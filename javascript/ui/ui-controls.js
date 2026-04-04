@@ -138,49 +138,53 @@ export function setupInteractionToggle() {
 // زر تثبيت التطبيق داخل الـ SVG
 // ============================================
 export function setupInstallButton() {
+    const mainSvg = document.getElementById('main-svg');
     const fixedLayer = document.getElementById('fixed-controls-layer');
-    if (!fixedLayer) return;
+    if (!mainSvg || !fixedLayer) return;
 
-    // منع التكرار لو اتنادي مرتين
+    // منع التكرار
     if (document.getElementById('install-svg-btn')) {
         console.warn('⚠️ install-svg-btn موجود بالفعل، تم التخطي');
         return;
     }
 
+    // ✅ نعمل g جديدة خارج fixed-controls-layer تماماً
+    // وندرجها مباشرة في main-svg كآخر عنصر = أعلى layer
     const installGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     installGroup.setAttribute('id', 'install-svg-btn');
-    installGroup.setAttribute('style', 'cursor: pointer; display: none;');
+    installGroup.style.cursor = 'pointer';
+    installGroup.style.display = 'none';
 
+    // الخلفية
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', '112');
-    rect.setAttribute('y', '38');
-    rect.setAttribute('width', '800');
-    rect.setAttribute('height', '55');
-    rect.setAttribute('rx', '12');
+    rect.setAttribute('x', '312');
+    rect.setAttribute('y', '0');
+    rect.setAttribute('width', '400');
+    rect.setAttribute('height', '45');
+    rect.setAttribute('rx', '22');
     rect.setAttribute('fill', '#ffcc00');
-    rect.setAttribute('filter', 'drop-shadow(0 4px 10px rgba(255,204,0,0.5))');
+    rect.setAttribute('filter', 'drop-shadow(0 3px 8px rgba(255,204,0,0.6))');
 
+    // النص
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttribute('x', '512');
-    text.setAttribute('y', '65');
+    text.setAttribute('y', '27');
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('dominant-baseline', 'middle');
     text.setAttribute('fill', '#000');
     text.setAttribute('font-weight', '900');
-    text.setAttribute('font-size', '22');
+    text.setAttribute('font-size', '18');
     text.setAttribute('font-family', 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif');
     text.setAttribute('pointer-events', 'none');
-    text.setAttribute('user-select', 'none');
     text.textContent = '📲 أضف الموقع للديسك توب';
 
     installGroup.appendChild(rect);
     installGroup.appendChild(text);
 
-    // ✅ appendChild بدل insertBefore — يضعه آخر عنصر في الـ layer
-    // فيكون فوق كل حاجة تانية في الـ SVG stacking order
-    fixedLayer.appendChild(installGroup);
+    // ✅ إضافة مباشرة لـ main-svg كآخر عنصر (أعلى كل شيء)
+    mainSvg.appendChild(installGroup);
 
-    // إظهار الزر لو الـ prompt جاهز قبل ما يتنادى setupInstallButton
+    // إظهار لو الـ prompt جاهز مسبقاً
     if (window._pwaPrompt) {
         installGroup.style.display = '';
     }
