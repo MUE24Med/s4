@@ -147,6 +147,19 @@ export function startHover() {
 }
 
 // ---------- معالجة مستطيل واحد ----------
+:
+export function processRect(r) {
+    if (r.hasAttribute('data-processed')) return;
+
+    // ✅ تجاهل المستطيلات بدون كلاس لون
+    const colorClasses = ['q', 'v', 'i', 'a', 's', 'l', 'is'];
+    const hasColor = colorClasses.some(c => r.classList.contains(c));
+    if (!hasColor) {
+        r.style.visibility = 'hidden';
+        r.style.pointerEvents = 'none';
+        r.setAttribute('data-processed', 'true');
+        return;
+    }
 export function processRect(r) {
     if (r.hasAttribute('data-processed')) return;
 
