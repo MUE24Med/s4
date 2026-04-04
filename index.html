@@ -42,31 +42,6 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css">
-
-  <style>
-    /* زر التثبيت في شاشة اختيار المجموعة */
-    #install-btn {
-      display: none;
-      margin-top: 15px;
-      padding: 12px 25px;
-      background: linear-gradient(135deg, #ffcc00, #f39c12);
-      color: #000;
-      border: none;
-      border-radius: 25px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 5px 20px rgba(255, 204, 0, 0.4);
-      transition: all 0.2s ease;
-      animation: installPulse 2s ease-in-out infinite;
-    }
-    #install-btn:hover  { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,204,0,0.6); }
-    #install-btn:active { transform: translateY(0) scale(0.97); }
-    @keyframes installPulse {
-      0%, 100% { box-shadow: 0 5px 20px rgba(255,204,0,0.4); }
-      50%       { box-shadow: 0 5px 35px rgba(255,204,0,0.7); }
-    }
-  </style>
 </head>
 <body>
 
@@ -191,8 +166,6 @@
       <button class="group-btn" data-group="C"><span class="group-letter">C</span><span class="group-label">Group C</span></button>
       <button class="group-btn" data-group="D"><span class="group-letter">D</span><span class="group-label">Group D</span></button>
     </div>
-    <!-- زر تثبيت HTML (في شاشة الاختيار) -->
-    <button id="install-btn">📲 أضف الموقع للديسك توب</button>
     <p style="color:#888; font-size:12px; margin-top:15px;">
       💡 يمكنك تغيير المجموعة لاحقاً من زر "🔄 Change Group"
     </p>
@@ -272,7 +245,13 @@
 <!-- الخريطة التفاعلية -->
 <div id="scroll-container">
   <svg id="main-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet">
-    <defs></defs>
+    <defs>
+      <!-- Gradient لزر التثبيت -->
+      <linearGradient id="install-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#ffcc00"/>
+        <stop offset="100%" style="stop-color:#f39c12"/>
+      </linearGradient>
+    </defs>
     <g transform="translate(0,0)" id="files-list-container">
       <image data-src="image/wood.webp" x="0" y="0" width="1024" height="2454" style="pointer-events: none;" />
     </g>
@@ -294,6 +273,17 @@
         <rect x="654" y="100" width="250" height="50" rx="10"/>
         <text id="reset-btn-text" x="779" y="130" text-anchor="middle" dominant-baseline="middle">Clear cache 🗑</text>
       </g>
+
+      <!-- ✅ زر التثبيت SVG — فوق الأزرار في المنتصف -->
+      <g id="install-svg-btn" style="cursor: pointer; display: none;">
+        <rect x="312" y="35" width="400" height="50" rx="25"
+              fill="url(#install-grad)" stroke="#e67e22" stroke-width="2"/>
+        <text x="512" y="62" text-anchor="middle" dominant-baseline="middle"
+              fill="#000" style="font-weight:bold; font-size:18px; font-family:Arial,sans-serif;">
+          📲 أضف الموقع للديسك توب
+        </text>
+      </g>
+
       <g id="back-button-group" style="cursor: pointer;">
         <rect id="back-btn" x="112" y="160" width="800" height="70" rx="15" />
         <text x="512" y="195" id="back-btn-text" text-anchor="middle" dominant-baseline="middle">➡️ إلى الخريطة ➡️</text>
@@ -353,28 +343,36 @@ if ('serviceWorker' in navigator) {
 <script>
 (function () {
   window._pwaPrompt = null;
-  const installBtn = document.getElementById('install-btn');
+  const installSvgBtn = document.getElementById('install-svg-btn');
+
+  function showInstallBtn() {
+    if (installSvgBtn) installSvgBtn.style.display = 'block';
+  }
+
+  function hideInstallBtn() {
+    if (installSvgBtn) installSvgBtn.style.display = 'none';
+  }
+
+  async function handleInstall() {
+    if (!window._pwaPrompt) return;
+    window._pwaPrompt.prompt();
+    const { outcome } = await window._pwaPrompt.userChoice;
+    console.log(outcome === 'accepted' ? '✅ تم التثبيت' : '❌ رفض التثبيت');
+    window._pwaPrompt = null;
+    hideInstallBtn();
+  }
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     window._pwaPrompt = e;
-    if (installBtn) installBtn.style.display = 'inline-block';
+    showInstallBtn();
     window.dispatchEvent(new Event('pwaInstallReady'));
   });
 
-  if (installBtn) {
-    installBtn.addEventListener('click', async () => {
-      if (!window._pwaPrompt) return;
-      window._pwaPrompt.prompt();
-      const { outcome } = await window._pwaPrompt.userChoice;
-      console.log(outcome === 'accepted' ? '✅ تم التثبيت' : '❌ رفض التثبيت');
-      window._pwaPrompt = null;
-      installBtn.style.display = 'none';
-    });
-  }
+  if (installSvgBtn) installSvgBtn.addEventListener('click', handleInstall);
 
   window.addEventListener('appinstalled', () => {
-    if (installBtn) installBtn.style.display = 'none';
+    hideInstallBtn();
     window._pwaPrompt = null;
     console.log('✅ التطبيق مثبت بالفعل');
   });
