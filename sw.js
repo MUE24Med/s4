@@ -59,7 +59,7 @@ self.addEventListener('activate', event => {
                 }
                 return null;
             }).filter(Boolean);
-            
+
             return Promise.all(deletePromises);
         }).then(() => {
             console.log('✅ Service Worker: تم التفعيل');
@@ -94,7 +94,7 @@ self.addEventListener('fetch', event => {
                         });
                     }
                 }).catch(() => {});
-                
+
                 return cached;
             }
 
@@ -174,15 +174,15 @@ self.addEventListener('fetch', event => {
 function shouldCache(url) {
     try {
         const pathname = new URL(url).pathname;
-        
+
         // لا نحفظ Service Worker نفسه
         if (pathname.includes('sw.js')) return false;
-        
+
         // نحفظ الملفات المهمة
         if (pathname.includes('/javascript/')) return true;
         if (pathname.includes('/image/')) return true;
         if (pathname.match(/\.(html|css|js|webp|png|jpg|jpeg|svg|pdf|json)$/)) return true;
-        
+
         return false;
     } catch (e) {
         return false;
@@ -194,7 +194,7 @@ self.addEventListener('message', (event) => {
         console.log('⏭️ تخطي الانتظار وتفعيل SW الجديد');
         self.skipWaiting();
     }
-    
+
     if (event.data && event.data.action === 'clearCache') {
         console.log('🗑️ طلب مسح الكاش');
         event.waitUntil(
