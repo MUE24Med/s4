@@ -127,7 +127,6 @@ export function setupInteractionToggle() {
     const jsToggle = document.getElementById('js-toggle');
     if (jsToggle) {
         jsToggle.addEventListener('change', function () {
-            // ✅ نحدث المتغير في wood-interface مباشرةً عبر الـ module
             import('../ui/wood-interface.js').then(module => {
                 module.setInteractionEnabled(this.checked);
             });
@@ -139,9 +138,14 @@ export function setupInteractionToggle() {
 // زر تثبيت التطبيق داخل الـ SVG
 // ============================================
 export function setupInstallButton() {
-    const mainSvg = document.getElementById('main-svg');
     const fixedLayer = document.getElementById('fixed-controls-layer');
-    if (!mainSvg || !fixedLayer) return;
+    if (!fixedLayer) return;
+
+    // منع التكرار لو اتنادي مرتين
+    if (document.getElementById('install-svg-btn')) {
+        console.warn('⚠️ install-svg-btn موجود بالفعل، تم التخطي');
+        return;
+    }
 
     const installGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     installGroup.setAttribute('id', 'install-svg-btn');
@@ -171,7 +175,15 @@ export function setupInstallButton() {
 
     installGroup.appendChild(rect);
     installGroup.appendChild(text);
-    fixedLayer.insertBefore(installGroup, fixedLayer.firstChild);
+
+    // ✅ appendChild بدل insertBefore — يضعه آخر عنصر في الـ layer
+    // فيكون فوق كل حاجة تانية في الـ SVG stacking order
+    fixedLayer.appendChild(installGroup);
+
+    // إظهار الزر لو الـ prompt جاهز قبل ما يتنادى setupInstallButton
+    if (window._pwaPrompt) {
+        installGroup.style.display = '';
+    }
 
     window.addEventListener('pwaInstallReady', () => {
         installGroup.style.display = '';
@@ -190,4 +202,6 @@ export function setupInstallButton() {
         window._pwaPrompt = null;
         installGroup.style.display = 'none';
     });
+
+    console.log('✅ زر التثبيت SVG جاهز');
 }
