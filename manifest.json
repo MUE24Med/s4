@@ -1,0 +1,26 @@
+{
+  "name": "خريطة المنهج الطبي - سيمستر 4",
+  "short_name": "S4 Map",
+  "description": "خريطة تفاعلية لعرض محاضرات وسكاشن الفرقة الثانية",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "image/0.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "image/0.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
