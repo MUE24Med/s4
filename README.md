@@ -81,34 +81,43 @@ npx live-server
 
 ```
 semester-3/
-├── index.html                    # الصفحة الرئيسية
-├── style.css                     # كل الأنماط
-├── script.js                     # نقطة الدخول الرئيسية
-├── tracker.js                    # نظام التتبع والبصمة
-├── sw.js                         # Service Worker
+├── index.html                         # الصفحة الرئيسية
+├── style.css                          # كل الأنماط
+├── script.js                          # نقطة الدخول الرئيسية
+├── tracker.js                         # نظام التتبع والبصمة
+├── sw.js                              # Service Worker
 ├── javascript/
 │   ├── core/
-│   │   ├── config.js             # الإعدادات العامة
-│   │   ├── utils.js              # دوال مساعدة
-│   │   ├── group-loader.js       # تحميل المجموعات
-│   │   └── back-button.js        # زر الرجوع
+│   │   ├── config.js                  # الإعدادات العامة
+│   │   ├── utils.js                   # دوال مساعدة
+│   │   ├── navigation.js              # نظام التنقل
+│   │   ├── group-loader.js            # تحميل المجموعات
+│   │   └── state.js                   # إدارة الحالة
 │   ├── features/
-│   │   ├── svg-processor.js      # معالجة مستطيلات SVG
-│   │   └── preload-game.js       # اللعبة التفاعلية
+│   │   ├── svg-processor.js           # معالجة مستطيلات SVG
+│   │   ├── preload.js                 # منطق التحميل المسبق
+│   │   ├── preload-game.js            # اللعبة التفاعلية
+│   │   ├── mini-game.js               # محرك اللعبة
+│   │   ├── leaderboard-core.js        # منطق قائمة المتصدرين
+│   │   └── leaderboard-ui.js          # واجهة قائمة المتصدرين
 │   └── ui/
-│       ├── wood-interface.js     # واجهة المستخدم
-│       └── pdf-viewer.js         # عارض PDF
+│       ├── wood-interface.js          # واجهة المستخدم الرئيسية
+│       ├── pdf-viewer.js              # عارض PDF
+│       ├── search-and-eye.js          # البحث وزر العين
+│       ├── ui-controls.js             # أزرار التحكم
+│       └── scroll-system.js           # نظام التمرير
 ├── groups/
 │   ├── group-A.svg
 │   ├── group-B.svg
 │   ├── group-C.svg
 │   └── group-D.svg
 └── image/
-    ├── 0.webp                    # الصورة الرئيسية
-    ├── wood.webp                 # خلفية الخشب
-    ├── logo-A.webp … logo-D.webp
-    ├── A/ B/ C/ D/               # صور الجداول
-    └── Upper_wood.webp
+    ├── 0.webp                         # الصورة الرئيسية
+    ├── 0.png                          # نسخة PNG
+    ├── wood.webp                      # خلفية الخشب
+    ├── Upper_wood.webp                # الخشب العلوي
+    ├── logo-A.webp … logo-D.webp      # شعارات المجموعات
+    └── A/ B/ C/ D/                    # صور الجداول الأسبوعية
 ```
 
 ---
