@@ -2,7 +2,6 @@
 // preload.js - نظام التحميل المسبق فقط
 // ============================================
 
-// قائمة الملفات المراد تحميلها مسبقاً
 const FILES_TO_LOAD = [
     './style.css',
     './tracker.js',
@@ -21,6 +20,39 @@ const FILES_TO_LOAD = [
     './javascript/features/svg-processor.js'
 ];
 
+// إضاءة المصابيح بناءً على نسبة التحميل
+function updateBulbs(percentage) {
+    const thresholds = [
+        { id: 'bulb-1', at: 25 },
+        { id: 'bulb-2', at: 50 },
+        { id: 'bulb-3', at: 75 },
+        { id: 'bulb-4', at: 100 },
+    ];
+    thresholds.forEach(({ id, at }) => {
+        const bulb = document.getElementById(id);
+        if (!bulb) return;
+        if (percentage >= at) {
+            bulb.classList.add('on');
+        } else {
+            // إضاءة جزئية: نسبة الضوء داخل النطاق (0→25، 25→50، إلخ)
+            const prev = at - 25;
+            const ratio = Math.max(0, (percentage - prev) / 25); // 0..1
+            if (ratio > 0) {
+                // نضيء المصباح بشفافية منخفضة حتى يكتمل
+                bulb.style.opacity = 0.2 + ratio * 0.8;
+                bulb.classList.add('on');
+            } else {
+                bulb.classList.remove('on');
+                bulb.style.opacity = '';
+            }
+        }
+        // لما يكتمل نرجع opacity كامل
+        if (percentage >= at) {
+            bulb.style.opacity = '';
+        }
+    });
+}
+
 /**
  * بدء التحميل المسبق
  * @param {Function} onComplete - دالة تُستدعى بعد اكتمال التحميل (اختياري)
@@ -29,7 +61,6 @@ export function initPreload(onComplete) {
     const preloadScreen = document.getElementById('preload-screen');
     if (!preloadScreen) return;
 
-    // إظهار الشاشة وإخفاء المحتوى الرئيسي
     preloadScreen.classList.remove('hidden');
     const mainContent = [
         document.getElementById('group-selection-screen'),
@@ -42,7 +73,7 @@ export function initPreload(onComplete) {
     });
 
     const progressBar = document.getElementById('progressBar');
-    const fileStatus = document.getElementById('fileStatus');
+    const fileStatus  = document.getElementById('fileStatus');
     const continueBtn = document.getElementById('continueBtn');
 
     let loadedFiles = 0;
@@ -54,6 +85,7 @@ export function initPreload(onComplete) {
             progressBar.style.width = percentage + '%';
             progressBar.textContent = percentage + '%';
         }
+        updateBulbs(percentage);
     }
 
     async function loadFile(url) {
@@ -85,6 +117,9 @@ export function initPreload(onComplete) {
     }
 
     async function startLoading() {
+        // نبدأ بصفر عشان المصابيح تبدأ فاضية
+        updateBulbs(0);
+
         for (const file of FILES_TO_LOAD) {
             await loadFile(file);
         }
@@ -92,7 +127,6 @@ export function initPreload(onComplete) {
         if (fileStatus) fileStatus.textContent = '🎉 اكتمل التحميل!';
         if (continueBtn) continueBtn.style.display = 'block';
 
-        // استدعاء callback إذا وُجد
         if (typeof onComplete === 'function') {
             onComplete();
         }
@@ -100,20 +134,16 @@ export function initPreload(onComplete) {
 
     startLoading();
 
-    // عند الضغط على متابعة
     continueBtn.addEventListener('click', () => {
         console.log('✅ حفظ حالة preload_done');
         localStorage.setItem('preload_done', 'true');
         localStorage.setItem('last_visit_timestamp', Date.now());
 
         preloadScreen.classList.add('hidden');
-
-        // إظهار المحتوى الرئيسي
         mainContent.forEach(el => {
             if (el) el.style.display = '';
         });
 
-        // إعادة تحميل الصفحة لبدء التشغيل الطبيعي
         window.location.reload();
     });
 }
