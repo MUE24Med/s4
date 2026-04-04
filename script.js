@@ -3,12 +3,13 @@
    ======================================== */
 
 import { initPreloadSystem } from './javascript/features/preload-game.js';
-import { setupBackButton } from './javascript/core/back-button.js'; // ✅ زر الرجوع الموحد
+import { setupBackButton } from './javascript/core/back-button.js';
 import { preventInteractionWhenHidden, initWoodUI, updateWelcomeMessages } from './javascript/ui/wood-interface.js';
 import { initPDFViewer } from './javascript/ui/pdf-viewer.js';
 import { initializeGroup, loadSelectedGroup } from './javascript/core/group-loader.js';
 import { scan } from './javascript/features/svg-processor.js';
 import { resetBrowserZoom } from './javascript/core/utils.js';
+import { setupInstallButton } from './javascript/ui/ui-controls.js'; // ✅ زر التثبيت
 
 // ---------- تحميل آخر جروب تلقائياً ----------
 function autoLoadLastGroup() {
@@ -94,28 +95,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const preloadDone = localStorage.getItem('preload_done');
 
     if (!preloadDone) {
-        // أول زيارة: نشغل نظام preload فقط (سيقوم بإخفاء باقي المحتوى)
         initPreloadSystem();
-        // لا داعي لتهيئة باقي المكونات الآن، لأن preload سيعيد التحميل لاحقاً
     } else {
-        // زيارة سابقة: نكمل التحميل الطبيعي
         autoLoadLastGroup();
 
-        // تهيئة المكونات
-        setupBackButton();                // ✅ زر الرجوع الجديد
+        setupBackButton();
         preventInteractionWhenHidden();
         initWoodUI();
         initPDFViewer();
+        setupInstallButton(); // ✅ زر التثبيت في SVG
         observeZIndexChanges();
 
-        // تحديث رسائل الترحيب
         updateWelcomeMessages();
 
-        // منع القائمة اليمنى على الصور
         document.addEventListener('contextmenu', (e) => {
             const target = e.target;
-            if (target.tagName === 'image' || 
-                target.tagName === 'IMG' || 
+            if (target.tagName === 'image' ||
+                target.tagName === 'IMG' ||
                 target.tagName === 'svg' ||
                 target.tagName === 'rect' ||
                 target.closest('svg')) {
