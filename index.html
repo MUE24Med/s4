@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
   <title>semester-4 | خريطة الكلية التفاعلية</title>
+
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mue24med.github.io/s4/">
@@ -36,14 +37,14 @@
   <link rel="icon" type="image/png" href="image/0.png">
   <link rel="apple-touch-icon" href="image/0.png">
 
-  <!-- ✅ PWA Manifest -->
+  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css">
 
   <style>
-    /* زر التثبيت */
+    /* زر التثبيت في شاشة اختيار المجموعة */
     #install-btn {
       display: none;
       margin-top: 15px;
@@ -59,16 +60,11 @@
       transition: all 0.2s ease;
       animation: installPulse 2s ease-in-out infinite;
     }
-    #install-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(255, 204, 0, 0.6);
-    }
-    #install-btn:active {
-      transform: translateY(0) scale(0.97);
-    }
+    #install-btn:hover  { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,204,0,0.6); }
+    #install-btn:active { transform: translateY(0) scale(0.97); }
     @keyframes installPulse {
-      0%, 100% { box-shadow: 0 5px 20px rgba(255, 204, 0, 0.4); }
-      50%       { box-shadow: 0 5px 35px rgba(255, 204, 0, 0.7); }
+      0%, 100% { box-shadow: 0 5px 20px rgba(255,204,0,0.4); }
+      50%       { box-shadow: 0 5px 35px rgba(255,204,0,0.7); }
     }
   </style>
 </head>
@@ -105,7 +101,7 @@
   </div>
 </div>
 
-<!-- 🎮 شاشة Preload المحسنة -->
+<!-- 🎮 شاشة Preload -->
 <div id="preload-screen" class="hidden">
   <div class="preload-container">
     <div class="notice">
@@ -115,14 +111,13 @@
     <h1>جاري التحميل</h1>
     <div class="subtitle">تجنب العدوى 🦠 واجمع العلاج 💊</div>
 
-    <!-- شريط التقدم -->
     <div class="progress-container">
       <div class="progress-bar" id="progressBar">0%</div>
     </div>
     <div class="file-status" id="fileStatus">جاري البدء...</div>
     <button class="continue-btn" id="continueBtn">متابعة إلى الموقع ➡️</button>
 
-    <!-- 🎮 حاوية اللعبة المحسنة -->
+    <!-- اللعبة -->
     <div class="game-container" id="gameContainer">
       <div class="game-stats">
         <div class="game-stat">❤️ <span id="heartsDisplay">0</span></div>
@@ -182,7 +177,6 @@
         </ul>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -197,11 +191,9 @@
       <button class="group-btn" data-group="C"><span class="group-letter">C</span><span class="group-label">Group C</span></button>
       <button class="group-btn" data-group="D"><span class="group-letter">D</span><span class="group-label">Group D</span></button>
     </div>
-
-    <!-- ✅ زر تثبيت التطبيق -->
+    <!-- زر تثبيت HTML (في شاشة الاختيار) -->
     <button id="install-btn">📲 أضف الموقع للديسك توب</button>
-
-    <p style="color: #888; font-size: 12px; margin-top: 15px;">
+    <p style="color:#888; font-size:12px; margin-top:15px;">
       💡 يمكنك تغيير المجموعة لاحقاً من زر "🔄 Change Group"
     </p>
   </div>
@@ -286,7 +278,7 @@
     </g>
     <g id="dynamic-links-group"></g>
     <g id="group-specific-content"></g>
-    <g id="upper-wood-layer" style="pointer-events: none; z-index: 3;">
+    <g id="upper-wood-layer" style="pointer-events: none;">
       <image data-src="image/Upper_wood.webp" x="0" y="0" width="1024" height="250" style="pointer-events: none;" />
     </g>
     <g id="fixed-controls-layer">
@@ -306,13 +298,14 @@
         <rect id="back-btn" x="112" y="160" width="800" height="70" rx="15" />
         <text x="512" y="195" id="back-btn-text" text-anchor="middle" dominant-baseline="middle">➡️ إلى الخريطة ➡️</text>
       </g>
+      <!-- زر التثبيت SVG — يُنشئه setupInstallButton() في ui-controls.js تلقائياً -->
     </g>
   </svg>
 </div>
 
 <!-- ======================== نهاية عناصر الواجهة ======================== -->
 
-<!-- ================ المكتبات الخارجية ================ -->
+<!-- المكتبات الخارجية -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   if (typeof pdfjsLib !== 'undefined') {
@@ -321,10 +314,10 @@
   }
 </script>
 
-<!-- ✅ السكريبت الرئيسي -->
+<!-- السكريبت الرئيسي -->
 <script type="module" src="script.js"></script>
 
-<!-- ✅ Service Worker -->
+<!-- Service Worker -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -354,40 +347,41 @@ if ('serviceWorker' in navigator) {
     }
   });
 }
+</script>
 
-<!-- ✅ زر تثبيت التطبيق PWA -->
+<!-- PWA Install -->
+<script>
 (function () {
-  let deferredPrompt = null;
+  window._pwaPrompt = null;
   const installBtn = document.getElementById('install-btn');
 
-  // المتصفح يطلق الحدث لما الموقع قابل للتثبيت
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
-    deferredPrompt = e;
+    window._pwaPrompt = e;
     if (installBtn) installBtn.style.display = 'inline-block';
+    window.dispatchEvent(new Event('pwaInstallReady'));
   });
 
   if (installBtn) {
     installBtn.addEventListener('click', async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+      if (!window._pwaPrompt) return;
+      window._pwaPrompt.prompt();
+      const { outcome } = await window._pwaPrompt.userChoice;
       console.log(outcome === 'accepted' ? '✅ تم التثبيت' : '❌ رفض التثبيت');
-      deferredPrompt = null;
+      window._pwaPrompt = null;
       installBtn.style.display = 'none';
     });
   }
 
-  // إخفاء الزر لو الموقع مثبت أصلاً
   window.addEventListener('appinstalled', () => {
     if (installBtn) installBtn.style.display = 'none';
-    deferredPrompt = null;
+    window._pwaPrompt = null;
     console.log('✅ التطبيق مثبت بالفعل');
   });
 })();
 </script>
 
-<!-- ✅ فحص التحديثات من GitHub -->
+<!-- فحص التحديثات من GitHub -->
 <script>
 async function checkForUpdates() {
   try {
@@ -428,43 +422,7 @@ window.addEventListener('load', checkForUpdates);
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) checkForUpdates();
 });
-</script><!-- ✅ زر تثبيت التطبيق PWA -->
-<script>
-(function () {
-  window._pwaPrompt = null;
-  const installBtn = document.getElementById('install-btn'); // زر شاشة الاختيار (HTML)
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    window._pwaPrompt = e;
-
-    // إظهار زر HTML في شاشة اختيار المجموعة
-    if (installBtn) installBtn.style.display = 'inline-block';
-
-    // إبلاغ زر SVG بالاستعداد
-    window.dispatchEvent(new Event('pwaInstallReady'));
-  });
-
-  // زر HTML
-  if (installBtn) {
-    installBtn.addEventListener('click', async () => {
-      if (!window._pwaPrompt) return;
-      window._pwaPrompt.prompt();
-      const { outcome } = await window._pwaPrompt.userChoice;
-      console.log(outcome === 'accepted' ? '✅ تم التثبيت' : '❌ رفض التثبيت');
-      window._pwaPrompt = null;
-      installBtn.style.display = 'none';
-    });
-  }
-
-  window.addEventListener('appinstalled', () => {
-    if (installBtn) installBtn.style.display = 'none';
-    window._pwaPrompt = null;
-    console.log('✅ التطبيق مثبت بالفعل');
-  });
-})();
 </script>
-
 
 </body>
 </html>
