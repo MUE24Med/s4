@@ -127,7 +127,10 @@ export function setupInteractionToggle() {
     const jsToggle = document.getElementById('js-toggle');
     if (jsToggle) {
         jsToggle.addEventListener('change', function () {
-            window.interactionEnabled = this.checked;
+            // ✅ نحدث المتغير في wood-interface مباشرةً عبر الـ module
+            import('../ui/wood-interface.js').then(module => {
+                module.setInteractionEnabled(this.checked);
+            });
         });
     }
 }
@@ -140,12 +143,10 @@ export function setupInstallButton() {
     const fixedLayer = document.getElementById('fixed-controls-layer');
     if (!mainSvg || !fixedLayer) return;
 
-    // إنشاء مجموعة الزر
     const installGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     installGroup.setAttribute('id', 'install-svg-btn');
     installGroup.setAttribute('style', 'cursor: pointer; display: none;');
 
-    // الخلفية
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     rect.setAttribute('x', '112');
     rect.setAttribute('y', '38');
@@ -155,7 +156,6 @@ export function setupInstallButton() {
     rect.setAttribute('fill', '#ffcc00');
     rect.setAttribute('filter', 'drop-shadow(0 4px 10px rgba(255,204,0,0.5))');
 
-    // النص
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttribute('x', '512');
     text.setAttribute('y', '65');
@@ -173,7 +173,6 @@ export function setupInstallButton() {
     installGroup.appendChild(text);
     fixedLayer.insertBefore(installGroup, fixedLayer.firstChild);
 
-    // ربطه بـ deferredPrompt من index.html
     window.addEventListener('pwaInstallReady', () => {
         installGroup.style.display = '';
     });
