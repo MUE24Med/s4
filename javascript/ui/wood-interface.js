@@ -25,6 +25,11 @@ import { setupSearchInput, setupEyeToggleSystem } from './search-and-eye.js';
 // ---------- متغير التفاعل ----------
 export let interactionEnabled = true;
 
+export function setInteractionEnabled(value) {
+    interactionEnabled = value;
+    console.log('🔄 Hover:', value ? 'مفعّل ✅' : 'معطّل ❌');
+}
+
 // ---------- تحديث واجهة الخشب ----------
 export async function updateWoodInterface() {
     const dynamicGroup = document.getElementById('dynamic-links-group');
