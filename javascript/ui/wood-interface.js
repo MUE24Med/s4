@@ -17,7 +17,8 @@ import {
     setupMoveToggleButton,
     setupSearchIcon,
     setupBackButtonInSVG,
-    setupInteractionToggle
+    setupInteractionToggle,
+    setupInstallButton
 } from './ui-controls.js';
 import { setupSearchInput, setupEyeToggleSystem } from './search-and-eye.js';
 
@@ -410,6 +411,13 @@ export async function updateWoodInterface() {
     addScrollSystem(scrollContainerGroup, scrollContent, separatorGroup, maxScroll, totalContentHeight);
 
     dynamicGroup.appendChild(scrollContainerGroup);
+
+    // ✅ بعد كل تحديث، نضمن إن زر التثبيت لسه آخر عنصر في main-svg
+    const installBtn = document.getElementById('install-svg-btn');
+    const mainSvgEl = document.getElementById('main-svg');
+    if (installBtn && mainSvgEl && mainSvgEl.lastElementChild !== installBtn) {
+        mainSvgEl.appendChild(installBtn);
+    }
 }
 
 // ---------- إدخال اسم المستخدم ----------
@@ -566,7 +574,6 @@ export function preventInteractionWhenHidden() {
         attributeFilter: ['class', 'style']
     });
 
-    // الحالة الابتدائية
     if (toggleContainer.classList.contains('hidden') ||
         toggleContainer.classList.contains('fully-hidden') ||
         toggleContainer.style.display === 'none') {
@@ -591,11 +598,11 @@ export function initWoodUI() {
     setupResetButton();
     setupMoveToggleButton();
     setupSearchIcon();
-    
-    // تمرير دالة getter بدلاً من القيمة المباشرة
     setupBackButtonInSVG(() => currentFolder, setCurrentFolder, updateWoodInterface);
-    
     setupInteractionToggle();
     setupSearchInput(updateWoodInterface);
     setupEyeToggleSystem();
+
+    // ✅ إنشاء زر التثبيت — يُضاف لـ main-svg مباشرة كآخر عنصر
+    setupInstallButton();
 }
