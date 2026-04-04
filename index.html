@@ -354,10 +354,8 @@ if ('serviceWorker' in navigator) {
     }
   });
 }
-</script>
 
 <!-- ✅ زر تثبيت التطبيق PWA -->
-<script>
 (function () {
   let deferredPrompt = null;
   const installBtn = document.getElementById('install-btn');
@@ -430,7 +428,43 @@ window.addEventListener('load', checkForUpdates);
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) checkForUpdates();
 });
+</script><!-- ✅ زر تثبيت التطبيق PWA -->
+<script>
+(function () {
+  window._pwaPrompt = null;
+  const installBtn = document.getElementById('install-btn'); // زر شاشة الاختيار (HTML)
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    window._pwaPrompt = e;
+
+    // إظهار زر HTML في شاشة اختيار المجموعة
+    if (installBtn) installBtn.style.display = 'inline-block';
+
+    // إبلاغ زر SVG بالاستعداد
+    window.dispatchEvent(new Event('pwaInstallReady'));
+  });
+
+  // زر HTML
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!window._pwaPrompt) return;
+      window._pwaPrompt.prompt();
+      const { outcome } = await window._pwaPrompt.userChoice;
+      console.log(outcome === 'accepted' ? '✅ تم التثبيت' : '❌ رفض التثبيت');
+      window._pwaPrompt = null;
+      installBtn.style.display = 'none';
+    });
+  }
+
+  window.addEventListener('appinstalled', () => {
+    if (installBtn) installBtn.style.display = 'none';
+    window._pwaPrompt = null;
+    console.log('✅ التطبيق مثبت بالفعل');
+  });
+})();
 </script>
+
 
 </body>
 </html>
