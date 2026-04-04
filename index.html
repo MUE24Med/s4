@@ -36,8 +36,41 @@
   <link rel="icon" type="image/png" href="image/0.png">
   <link rel="apple-touch-icon" href="image/0.png">
 
+  <!-- ✅ PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
   <!-- Styles -->
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* زر التثبيت */
+    #install-btn {
+      display: none;
+      margin-top: 15px;
+      padding: 12px 25px;
+      background: linear-gradient(135deg, #ffcc00, #f39c12);
+      color: #000;
+      border: none;
+      border-radius: 25px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 5px 20px rgba(255, 204, 0, 0.4);
+      transition: all 0.2s ease;
+      animation: installPulse 2s ease-in-out infinite;
+    }
+    #install-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 204, 0, 0.6);
+    }
+    #install-btn:active {
+      transform: translateY(0) scale(0.97);
+    }
+    @keyframes installPulse {
+      0%, 100% { box-shadow: 0 5px 20px rgba(255, 204, 0, 0.4); }
+      50%       { box-shadow: 0 5px 35px rgba(255, 204, 0, 0.7); }
+    }
+  </style>
 </head>
 <body>
 
@@ -91,31 +124,19 @@
 
     <!-- 🎮 حاوية اللعبة المحسنة -->
     <div class="game-container" id="gameContainer">
-      <!-- إحصائيات اللعبة -->
       <div class="game-stats">
         <div class="game-stat">❤️ <span id="heartsDisplay">0</span></div>
         <div class="game-stat">⭐ <span id="scoreDisplay">0</span></div>
       </div>
-
-      <!-- 🏆 عرض الرقم القياسي الشخصي -->
       <div id="personalRecordDisplay" title="رقمك القياسي">
         🏆 <span id="personalRecordValue">0</span>
       </div>
-
-      <!-- اللاعب -->
       <div class="runner" id="runner">👨‍⚕️</div>
-
-      <!-- شاشة النهاية -->
       <div class="game-overlay" id="gameOverlay">
         <h2>🎮 انتهت اللعبة!</h2>
         <div class="final-score" id="finalScore">النقاط: 0</div>
-
-        <!-- 🎉 رسالة الرقم القياسي -->
         <div id="recordMessage"></div>
-
         <button class="restart-btn" id="restartBtn" title="إعادة اللعب">🔄</button>
-
-        <!-- 🏆 قائمة أفضل 5 لاعبين -->
         <div class="leaderboard">
           <h3>🏆 أفضل 5 لاعبين عالمياً</h3>
           <ul class="leaderboard-list" id="leaderboardList">
@@ -133,17 +154,12 @@
     <div class="controls">
       <button class="control-btn" id="leftBtn">➡️</button>
       <button class="control-btn" id="rightBtn">⬅️</button>
-      </div>
+    </div>
 
-    <!-- ========================================
-         🏆 Top 5 الحية - تحت اللعبة دائماً
-         تُحمَّل من الكاش فوراً ثم تُحدَّث من السحابة
-    ========================================= -->
+    <!-- 🏆 Top 5 الحية -->
     <div id="live-leaderboard-section">
       <div class="live-lb-header">
-        <span class="live-lb-title">
-.
-🏆 أفضل 5 لاعبين</span>
+        <span class="live-lb-title">🏆 أفضل 5 لاعبين</span>
         <span class="live-lb-status" id="liveLeaderboardStatus">⏳ جاري التحميل...</span>
       </div>
       <div class="live-lb-scroll">
@@ -181,7 +197,11 @@
       <button class="group-btn" data-group="C"><span class="group-letter">C</span><span class="group-label">Group C</span></button>
       <button class="group-btn" data-group="D"><span class="group-letter">D</span><span class="group-label">Group D</span></button>
     </div>
-    <p style="color: #888; font-size: 12px; margin-top: 20px;">
+
+    <!-- ✅ زر تثبيت التطبيق -->
+    <button id="install-btn">📲 أضف الموقع للديسك توب</button>
+
+    <p style="color: #888; font-size: 12px; margin-top: 15px;">
       💡 يمكنك تغيير المجموعة لاحقاً من زر "🔄 Change Group"
     </p>
   </div>
@@ -237,10 +257,8 @@
       <button id="closePdfBtn" class="toolbar-btn">❌ إغلاق</button>
       <button id="downloadBtn" class="toolbar-btn">⬇ تحميل</button>
       <button id="shareBtn" class="toolbar-btn">🔗 مشاركة</button>
-      <!-- زر العين الجديد (سيتم نقله خارج الـ toolbar) -->
     </div>
   </div>
-  <!-- زر عين قابل للسحب داخل PDF (مثل eye-toggle-standalone) -->
   <div id="pdf-eye-draggable" class="pdf-eye-draggable" title="إخفاء/إظهار شريط الأدوات">👁️</div>
   <iframe id="pdfFrame" src="" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
 </div>
@@ -298,12 +316,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   if (typeof pdfjsLib !== 'undefined') {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
 </script>
 
-<!-- ✅ السكريبت الرئيسي – نقطة الدخول الوحيدة -->
+<!-- ✅ السكريبت الرئيسي -->
 <script type="module" src="script.js"></script>
 
 <!-- ✅ Service Worker -->
@@ -336,6 +354,39 @@ if ('serviceWorker' in navigator) {
     }
   });
 }
+</script>
+
+<!-- ✅ زر تثبيت التطبيق PWA -->
+<script>
+(function () {
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('install-btn');
+
+  // المتصفح يطلق الحدث لما الموقع قابل للتثبيت
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installBtn) installBtn.style.display = 'inline-block';
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(outcome === 'accepted' ? '✅ تم التثبيت' : '❌ رفض التثبيت');
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+    });
+  }
+
+  // إخفاء الزر لو الموقع مثبت أصلاً
+  window.addEventListener('appinstalled', () => {
+    if (installBtn) installBtn.style.display = 'none';
+    deferredPrompt = null;
+    console.log('✅ التطبيق مثبت بالفعل');
+  });
+})();
 </script>
 
 <!-- ✅ فحص التحديثات من GitHub -->
@@ -380,5 +431,6 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) checkForUpdates();
 });
 </script>
+
 </body>
 </html>
