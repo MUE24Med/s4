@@ -107,7 +107,6 @@ export function setupBackButtonInSVG(getCurrentFolder, setCurrentFolder, updateW
         backButtonGroup.onclick = (e) => {
             e.stopPropagation();
 
-            // الحصول على القيمة الحالية في كل نقرة
             const folder = getCurrentFolder();
 
             if (folder !== "") {
@@ -131,4 +130,65 @@ export function setupInteractionToggle() {
             window.interactionEnabled = this.checked;
         });
     }
+}
+
+// ============================================
+// زر تثبيت التطبيق داخل الـ SVG
+// ============================================
+export function setupInstallButton() {
+    const mainSvg = document.getElementById('main-svg');
+    const fixedLayer = document.getElementById('fixed-controls-layer');
+    if (!mainSvg || !fixedLayer) return;
+
+    // إنشاء مجموعة الزر
+    const installGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    installGroup.setAttribute('id', 'install-svg-btn');
+    installGroup.setAttribute('style', 'cursor: pointer; display: none;');
+
+    // الخلفية
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', '112');
+    rect.setAttribute('y', '38');
+    rect.setAttribute('width', '800');
+    rect.setAttribute('height', '55');
+    rect.setAttribute('rx', '12');
+    rect.setAttribute('fill', '#ffcc00');
+    rect.setAttribute('filter', 'drop-shadow(0 4px 10px rgba(255,204,0,0.5))');
+
+    // النص
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', '512');
+    text.setAttribute('y', '65');
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('fill', '#000');
+    text.setAttribute('font-weight', '900');
+    text.setAttribute('font-size', '22');
+    text.setAttribute('font-family', 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif');
+    text.setAttribute('pointer-events', 'none');
+    text.setAttribute('user-select', 'none');
+    text.textContent = '📲 أضف الموقع للديسك توب';
+
+    installGroup.appendChild(rect);
+    installGroup.appendChild(text);
+    fixedLayer.insertBefore(installGroup, fixedLayer.firstChild);
+
+    // ربطه بـ deferredPrompt من index.html
+    window.addEventListener('pwaInstallReady', () => {
+        installGroup.style.display = '';
+    });
+
+    window.addEventListener('appinstalled', () => {
+        installGroup.style.display = 'none';
+    });
+
+    installGroup.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!window._pwaPrompt) return;
+        window._pwaPrompt.prompt();
+        const { outcome } = await window._pwaPrompt.userChoice;
+        console.log(outcome === 'accepted' ? '✅ تم التثبيت' : '❌ رفض التثبيت');
+        window._pwaPrompt = null;
+        installGroup.style.display = 'none';
+    });
 }
