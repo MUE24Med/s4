@@ -17,7 +17,11 @@ const FILES_TO_LOAD = [
     './javascript/ui/ui-controls.js',
     './javascript/ui/scroll-system.js',
     './javascript/features/preload-game.js',
-    './javascript/features/svg-processor.js'
+    './javascript/features/svg-processor.js',
+   './image/0.webp',
+   './image/0.png',
+   './image/wood.webp',
+   './image/Upper_wood.webp'
 ];
 
 // إضاءة المصابيح بناءً على نسبة التحميل
