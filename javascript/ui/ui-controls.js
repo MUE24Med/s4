@@ -137,7 +137,18 @@ export function setupInteractionToggle() {
 // ============================================
 // زر تثبيت التطبيق داخل الـ SVG
 // ============================================
+
+// ✅ FIX: متغير لمنع تكرار الإعداد في نفس الجلسة
+let _installButtonInitialized = false;
+
 export function setupInstallButton() {
+    // ✅ FIX: منع التكرار إذا تم الاستدعاء أكثر من مرة
+    if (_installButtonInitialized) {
+        console.log('ℹ️ setupInstallButton: تم الإعداد مسبقاً، تخطي');
+        return;
+    }
+    _installButtonInitialized = true;
+
     _setupAndroidInstallButton();
     _setupIOSInstallHint();
 }
@@ -145,11 +156,13 @@ export function setupInstallButton() {
 // ---------- Android / Chrome — زر داخل SVG ----------
 function _setupAndroidInstallButton() {
     const mainSvg = document.getElementById('main-svg');
-    const fixedLayer = document.getElementById('fixed-controls-layer');
-    if (!mainSvg || !fixedLayer) return;
+    if (!mainSvg) return;
 
-    if (document.getElementById('install-svg-btn')) {
-        console.warn('⚠️ install-svg-btn موجود بالفعل، تم التخطي');
+    // ✅ FIX: تحقق من الوجود المسبق وأزل القديم بدلاً من التخطي فقط
+    const existing = document.getElementById('install-svg-btn');
+    if (existing) {
+        console.log('♻️ install-svg-btn: إعادة استخدام العنصر الموجود');
+        _bindInstallButtonEvents(existing);
         return;
     }
 
@@ -183,9 +196,20 @@ function _setupAndroidInstallButton() {
     installGroup.appendChild(text);
     mainSvg.appendChild(installGroup);
 
+    _bindInstallButtonEvents(installGroup);
+    console.log('✅ زر التثبيت SVG جاهز');
+}
+
+// ✅ FIX: دالة منفصلة لربط الأحداث — تُستخدم سواء بالعنصر الجديد أو القديم
+function _bindInstallButtonEvents(installGroup) {
     if (window._pwaPrompt) {
         installGroup.style.display = '';
     }
+
+    // ✅ FIX: إزالة المستمعين القديمة قبل إضافة جديدة لتجنب التكرار
+    const newGroup = installGroup.cloneNode(true);
+    installGroup.parentNode?.replaceChild(newGroup, installGroup);
+    installGroup = newGroup;
 
     window.addEventListener('pwaInstallReady', () => {
         installGroup.style.display = '';
@@ -206,8 +230,6 @@ function _setupAndroidInstallButton() {
         window._pwaPrompt = null;
         installGroup.style.display = 'none';
     });
-
-    console.log('✅ زر التثبيت SVG جاهز');
 }
 
 // ---------- iOS Safari — Banner تعليمي ----------
