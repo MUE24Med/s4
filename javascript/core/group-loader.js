@@ -15,6 +15,9 @@ let loadingProgress = {
     currentPercentage: 0
 };
 
+// ✅ الصور الثابتة — محملة في preload، بس محتاجة href في DOM
+const STATIC_IMAGES = ['image/wood.webp', 'image/Upper_wood.webp'];
+
 // ---------- شجرة الملفات ----------
 export async function fetchGlobalTree() {
     if (globalFileTree.length > 0) return;
@@ -116,6 +119,63 @@ export function updateLoadProgress() {
     if (pct >= 80) document.getElementById('bulb-1')?.classList.add('on');
 }
 
+// ---------- تطبيق href على صور DOM ----------
+function applyImageSrc(url, src) {
+    const mainSvg = document.getElementById('main-svg');
+    const filesContainer = document.getElementById('files-list-container');
+    const allImages = [
+        ...(mainSvg?.querySelectorAll('image') || []),
+        ...(filesContainer?.querySelectorAll('image') || [])
+    ];
+    allImages.forEach(si => {
+        if (si.getAttribute('data-src') === url) {
+            si.setAttribute('href', src);
+        }
+    });
+}
+
+// ---------- تحميل صورة واحدة مع الكاش ----------
+async function loadSingleImage(url) {
+    // جرب الكاش أولاً
+    try {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(url);
+        if (cached) {
+            console.log(`✅ صورة من الكاش: ${url.split('/').pop()}`);
+            const blob = await cached.blob();
+            applyImageSrc(url, URL.createObjectURL(blob));
+            return;
+        }
+    } catch (e) {
+        console.warn(`⚠️ خطأ في كاش الصورة: ${e}`);
+    }
+
+    // تحميل من الشبكة
+    return new Promise((resolve) => {
+        const img = new Image();
+
+        img.onload = async function () {
+            applyImageSrc(url, this.src);
+            console.log(`✅ صورة محملة: ${url.split('/').pop()}`);
+            try {
+                const cache = await caches.open(CACHE_NAME);
+                const res = await fetch(url);
+                if (res.ok) await cache.put(url, res);
+            } catch (e) {
+                console.warn(`⚠️ فشل حفظ الصورة: ${e}`);
+            }
+            resolve();
+        };
+
+        img.onerror = function () {
+            console.error(`❌ فشل تحميل: ${url}`);
+            resolve();
+        };
+
+        img.src = url;
+    });
+}
+
 // ---------- تحميل SVG الخاص بالمجموعة ----------
 export async function loadGroupSVG(groupLetter) {
     const groupContainer = document.getElementById('group-specific-content');
@@ -129,8 +189,6 @@ export async function loadGroupSVG(groupLetter) {
 
     try {
         console.log(`🔄 تحميل: ${svgPath}`);
-
-        // ✅ CACHE_NAME من config.js — يتغير تلقائياً مع كل تحديث
         const cache = await caches.open(CACHE_NAME);
         let response = await cache.match(svgPath);
 
@@ -139,9 +197,7 @@ export async function loadGroupSVG(groupLetter) {
         } else {
             console.log('🌐 تحميل SVG من الشبكة');
             response = await fetch(svgPath);
-            if (response.ok) {
-                cache.put(svgPath, response.clone());
-            }
+            if (response.ok) cache.put(svgPath, response.clone());
         }
 
         if (!response.ok) {
@@ -161,7 +217,7 @@ export async function loadGroupSVG(groupLetter) {
             const injectedImages = groupContainer.querySelectorAll('image[data-src]');
             console.log(`🖼️ عدد الصور في SVG: ${injectedImages.length}`);
 
-            // ✅ wood.webp و Upper_wood.webp محملين في preload — لا داعي لإعادة تحميلهم
+            // ✅ صور الجروب فقط (بدون الصور الثابتة — بتتحمل منفصلة)
             imageUrlsToLoad = [];
             injectedImages.forEach(img => {
                 const src = img.getAttribute('data-src');
@@ -175,10 +231,12 @@ export async function loadGroupSVG(groupLetter) {
                 }
             });
 
-            loadingProgress.totalSteps = 1 + imageUrlsToLoad.length;
-            loadingProgress.completedSteps = 1;
+            // ✅ الصور الثابتة تتحمل دايمًا (data-src → href)
+            const allToLoad = [...STATIC_IMAGES, ...imageUrlsToLoad];
+            loadingProgress.totalSteps = allToLoad.length;
+            loadingProgress.completedSteps = 0;
             updateLoadProgress();
-            console.log(`📋 صور الجروب للتحميل (${imageUrlsToLoad.length}):`, imageUrlsToLoad);
+            console.log(`📋 إجمالي الصور (${allToLoad.length}): ثابتة=${STATIC_IMAGES.length} + جروب=${imageUrlsToLoad.length}`);
         } else {
             console.error('❌ فشل استخراج محتوى SVG');
             loadingProgress.totalSteps = 1;
@@ -269,79 +327,21 @@ export async function initializeGroup(groupLetter) {
     await loadImages();
 }
 
-// ---------- تحميل صورة واحدة مع الكاش ----------
-// ✅ دالة موحدة بدل الكود المتكرر 3 مرات في loadImages
-async function loadSingleImage(url) {
-    const mainSvg = document.getElementById('main-svg');
-    const filesContainer = document.getElementById('files-list-container');
-
-    function applyImageSrc(src) {
-        const allImages = [
-            ...( mainSvg?.querySelectorAll('image') || []),
-            ...( filesContainer?.querySelectorAll('image') || [])
-        ];
-        allImages.forEach(si => {
-            if (si.getAttribute('data-src') === url) {
-                si.setAttribute('href', src);
-            }
-        });
-    }
-
-    // جرب الكاش أولاً
-    try {
-        const cache = await caches.open(CACHE_NAME); // ✅ CACHE_NAME من config
-        const cached = await cache.match(url);
-        if (cached) {
-            console.log(`✅ صورة من الكاش: ${url.split('/').pop()}`);
-            const blob = await cached.blob();
-            applyImageSrc(URL.createObjectURL(blob));
-            return;
-        }
-    } catch (e) {
-        console.warn(`⚠️ خطأ في كاش الصورة: ${e}`);
-    }
-
-    // تحميل من الشبكة
-    return new Promise((resolve) => {
-        const img = new Image();
-
-        img.onload = async function () {
-            applyImageSrc(this.src);
-            console.log(`✅ صورة محملة: ${url.split('/').pop()}`);
-            try {
-                const cache = await caches.open(CACHE_NAME); // ✅ CACHE_NAME من config
-                const res = await fetch(url);
-                if (res.ok) await cache.put(url, res);
-            } catch (e) {
-                console.warn(`⚠️ فشل حفظ الصورة: ${e}`);
-            }
-            resolve();
-        };
-
-        img.onerror = function () {
-            console.error(`❌ فشل تحميل: ${url}`);
-            resolve();
-        };
-
-        img.src = url;
-    });
-}
-
 // ---------- تحميل كل الصور ----------
 export async function loadImages() {
-    if (imageUrlsToLoad.length === 0) {
+    const allToLoad = [...STATIC_IMAGES, ...imageUrlsToLoad];
+
+    if (allToLoad.length === 0) {
         console.warn('⚠️ لا توجد صور للتحميل');
         finishLoading();
         return;
     }
 
-    console.log(`🖼️ بدء تحميل ${imageUrlsToLoad.length} صورة...`);
+    console.log(`🖼️ بدء تحميل ${allToLoad.length} صورة...`);
 
     const MAX_CONCURRENT = 3;
-
-    // تحميل على دفعات متوازية
-    for (let i = 0; i < imageUrlsToLoad.length; i += MAX_CONCURRENT) {
-        const batch = imageUrlsToLoad.slice(i, i + MAX_CONCURRENT);
+    for (let i = 0; i < allToLoad.length; i += MAX_CONCURRENT) {
+        const batch = allToLoad.slice(i, i + MAX_CONCURRENT);
         await Promise.all(batch.map(async (url) => {
             await loadSingleImage(url);
             loadingProgress.completedSteps++;
