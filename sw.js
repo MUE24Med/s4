@@ -1,10 +1,9 @@
 /* ========================================
-   sw.js - Service Worker v2.1
+   sw.js - Service Worker v2.2
    ======================================== */
 
-// ✅ الإصدار يأتي من index.html عند التسجيل: sw.js?v=...
-// كده تغيير CACHE_NAME في config.js يكفي — بدون تعديل sw.js
 const CACHE_NAME = new URL(location.href).searchParams.get('v') || 'semester-4-cache-default';
+
 const urlsToCache = [
    './',
    './index.html',
@@ -57,7 +56,7 @@ self.addEventListener('install', event => {
 });
 
 // ============================================================
-// ACTIVATE — حذف الكاش القديم
+// ACTIVATE
 // ============================================================
 self.addEventListener('activate', event => {
     console.log('🚀 SW: تفعيل الإصدار', CACHE_NAME);
@@ -79,16 +78,14 @@ self.addEventListener('activate', event => {
 });
 
 // ============================================================
-// FETCH — Cache First مع Background Update
+// FETCH — Cache First
 // ============================================================
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
 
-    // تجاهل طلبات غير مدعومة
     if (event.request.method !== 'GET') return;
     if (url.pathname.includes('sw.js')) return;
 
-    // تجاهل مصادر خارجية غير مصرّح بها
     const allowedOrigins = [
         self.location.origin,
         'raw.githubusercontent.com',
@@ -96,50 +93,55 @@ self.addEventListener('fetch', event => {
         'cdnjs.cloudflare.com',
         'mozilla.github.io'
     ];
-    const isAllowed = allowedOrigins.some(o => url.origin.includes(o));
-    if (!isAllowed) return;
+    if (!allowedOrigins.some(o => url.origin.includes(o))) return;
 
-    event.respondWith(
-        caches.match(event.request).then(cached => {
-            // تحديث في الخلفية إن وجد في الكاش
-            if (cached) {
-                if (shouldCache(event.request.url)) {
-                    fetch(event.request)
-                        .then(response => {
-                            if (response && response.status === 200) {
-                                caches.open(CACHE_NAME).then(cache => {
-                                    cache.put(event.request, response.clone()).catch(() => {});
-                                });
-                            }
-                        })
-                        .catch(() => {});
-                }
-                return cached;
-            }
-
-            // جلب من الشبكة
-            return fetch(event.request)
-                .then(response => {
-                    if (shouldCache(event.request.url) && response && response.status === 200) {
-                        caches.open(CACHE_NAME).then(cache => {
-                            cache.put(event.request, response.clone()).catch(() => {});
-                        });
-                    }
-                    return response;
-                })
-                .catch(() => {
-                    // Fallback للصفحات
-                    if (event.request.destination === 'document') {
-                        return caches.match('./index.html').then(r => r || offlinePage());
-                    }
-                    return new Response('Offline', { status: 503 });
-                });
-        })
-    );
+    event.respondWith(handleFetch(event.request));
 });
 
+async function handleFetch(request) {
+    const cached = await caches.match(request);
+
+    if (cached) {
+        // ✅ background update — clone قبل أي استخدام
+        if (shouldCache(request.url)) {
+            updateCacheInBackground(request);
+        }
+        return cached;
+    }
+
+    // مش في الكاش — جيب من الشبكة
+    try {
+        const response = await fetch(request);
+        if (shouldCache(request.url) && response && response.status === 200) {
+            // ✅ clone الـ response قبل ما نرجعه أو نحطه في الكاش
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+                cache.put(request, responseToCache).catch(() => {});
+            });
+        }
+        return response;
+    } catch (_err) {
+        if (request.destination === 'document') {
+            const fallback = await caches.match('./index.html');
+            return fallback || offlinePage();
+        }
+        return new Response('Offline', { status: 503 });
+    }
+}
+
+// ✅ background update منفصل — يعمل clone خاص بيه
+function updateCacheInBackground(request) {
+    fetch(request.clone()).then(response => {
+        if (response && response.status === 200) {
+            caches.open(CACHE_NAME).then(cache => {
+                cache.put(request, response).catch(() => {});
+            });
+        }
+    }).catch(() => {});
+}
+
 // ============================================================
-// صفحة Offline الاحتياطية
+// صفحة Offline
 // ============================================================
 function offlinePage() {
     return new Response(
@@ -150,54 +152,27 @@ function offlinePage() {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>وضع Offline</title>
             <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    height: 100vh;
-                    margin: 0;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    text-align: center;
-                }
+                body { font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; }
                 .container { max-width: 500px; padding: 40px; }
                 h1 { font-size: 48px; margin: 0; }
                 p { font-size: 18px; margin: 20px 0; }
-                button {
-                    background: white;
-                    color: #667eea;
-                    border: none;
-                    padding: 15px 30px;
-                    font-size: 16px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    margin-top: 20px;
-                }
-                button:hover { background: #f0f0f0; }
+                button { background: white; color: #667eea; border: none; padding: 15px 30px; font-size: 16px; border-radius: 8px; cursor: pointer; margin-top: 20px; }
             </style>
         </head>
         <body>
             <div class="container">
                 <h1>🔌 وضع Offline</h1>
                 <p>لا يوجد اتصال بالإنترنت</p>
-                <p>تأكد من اتصالك بالشبكة ثم حاول مرة أخرى</p>
                 <button onclick="location.reload()">🔄 إعادة المحاولة</button>
             </div>
         </body>
         </html>`,
-        {
-            status: 503,
-            headers: {
-                'Content-Type': 'text/html; charset=utf-8',
-                'Cache-Control': 'no-cache'
-            }
-        }
+        { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' } }
     );
 }
 
 // ============================================================
-// shouldCache — ما يُحفظ في الكاش
+// shouldCache
 // ============================================================
 function shouldCache(url) {
     try {
@@ -213,7 +188,7 @@ function shouldCache(url) {
 }
 
 // ============================================================
-// رسائل من الصفحة الرئيسية
+// رسائل
 // ============================================================
 self.addEventListener('message', event => {
     if (!event.data) return;
@@ -238,4 +213,4 @@ self.addEventListener('message', event => {
     }
 });
 
-console.log(`%c✅ SW v2.1 - الكاش: ${CACHE_NAME}`, 'color:#00ff00;font-weight:bold;');
+console.log(`%c✅ SW v2.2 - الكاش: ${CACHE_NAME}`, 'color:#00ff00;font-weight:bold;');
