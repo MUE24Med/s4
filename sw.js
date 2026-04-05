@@ -40,12 +40,21 @@ self.addEventListener('install', event => {
     console.log('🔧 SW: تثبيت الإصدار', CACHE_NAME);
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache =>
+            // ✅ FIX: استبدال cache.add بـ fetch + put لتجنب TypeError على الملفات المفقودة
             Promise.all(
                 urlsToCache.map(url =>
-                    cache.add(url).catch(err => {
-                        console.warn(`⚠️ فشل تخزين: ${url}`, err);
-                        return Promise.resolve();
-                    })
+                    fetch(url)
+                        .then(response => {
+                            if (!response || response.status !== 200) {
+                                console.warn(`⚠️ فشل تخزين (${response?.status ?? 'no response'}): ${url}`);
+                                return Promise.resolve();
+                            }
+                            return cache.put(url, response);
+                        })
+                        .catch(err => {
+                            console.warn(`⚠️ فشل تخزين: ${url}`, err.message);
+                            return Promise.resolve(); // لا تكسر التثبيت بسبب ملف واحد
+                        })
                 )
             )
         ).then(() => {
