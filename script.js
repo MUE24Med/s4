@@ -9,7 +9,7 @@ import { initPDFViewer } from './javascript/ui/pdf-viewer.js';
 import { initializeGroup, loadSelectedGroup } from './javascript/core/group-loader.js';
 import { scan } from './javascript/features/svg-processor.js';
 import { resetBrowserZoom } from './javascript/core/utils.js';
-import { setupInstallButton } from './javascript/ui/ui-controls.js'; // ✅ زر التثبيت
+import { setupInstallButton } from './javascript/ui/ui-controls.js';
 
 // ---------- تحميل آخر جروب تلقائياً ----------
 function autoLoadLastGroup() {
@@ -37,46 +37,48 @@ function autoLoadLastGroup() {
 // ---------- مراقب تغيير Z-Index (إعادة تعيين التكبير) ----------
 function observeZIndexChanges() {
     let zoomTimeout;
+
     const shouldTriggerReset = (el) => {
         if (!el || !el.style) return false;
-        const zIndex = window.getComputedStyle(el).zIndex;
-        const display = window.getComputedStyle(el).display;
-        const visibility = window.getComputedStyle(el).visibility;
-        const opacity = window.getComputedStyle(el).opacity;
+        const style = window.getComputedStyle(el);
         return (
-            zIndex !== 'auto' &&
-            parseInt(zIndex) >= 10 &&
-            display !== 'none' &&
-            visibility !== 'hidden' &&
-            opacity !== '0'
+            style.zIndex !== 'auto' &&
+            parseInt(style.zIndex) >= 10 &&
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            style.opacity !== '0'
         );
     };
 
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
             const target = mutation.target;
+
             if (mutation.type === 'attributes') {
-                if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
-                    if (shouldTriggerReset(target)) {
-                        clearTimeout(zoomTimeout);
-                        zoomTimeout = setTimeout(() => {
-                            console.log('🧠 تغيير z-index / ظهور شاشة → Reset Zoom');
-                            resetBrowserZoom();
-                        }, 80);
-                        break;
-                    }
+                if (
+                    (mutation.attributeName === 'style' || mutation.attributeName === 'class') &&
+                    shouldTriggerReset(target)
+                ) {
+                    clearTimeout(zoomTimeout);
+                    zoomTimeout = setTimeout(() => {
+                        console.log('🧠 تغيير z-index / ظهور شاشة → Reset Zoom');
+                        resetBrowserZoom();
+                    }, 80);
+                    break;
                 }
             }
+
             if (mutation.type === 'childList') {
-                mutation.addedNodes.forEach((node) => {
+                for (const node of mutation.addedNodes) {
                     if (node.nodeType === 1 && shouldTriggerReset(node)) {
                         clearTimeout(zoomTimeout);
                         zoomTimeout = setTimeout(() => {
                             console.log('🧠 إضافة شاشة جديدة → Reset Zoom');
                             resetBrowserZoom();
                         }, 80);
+                        break;
                     }
-                });
+                }
             }
         }
     });
@@ -87,7 +89,25 @@ function observeZIndexChanges() {
         childList: true,
         subtree: true
     });
+
     console.log('✅ مراقبة z-index وظهور/اختفاء الشاشات مفعّلة');
+}
+
+// ---------- منع قائمة السياق على العناصر البصرية ----------
+function preventContextMenu() {
+    document.addEventListener('contextmenu', (e) => {
+        const target = e.target;
+        if (
+            target.tagName === 'image' ||
+            target.tagName === 'IMG' ||
+            target.tagName === 'svg' ||
+            target.tagName === 'rect' ||
+            target.closest('svg')
+        ) {
+            e.preventDefault();
+            return false;
+        }
+    });
 }
 
 // ---------- التهيئة عند تحميل DOM ----------
@@ -98,27 +118,14 @@ document.addEventListener('DOMContentLoaded', () => {
         initPreloadSystem();
     } else {
         autoLoadLastGroup();
-
         setupBackButton();
         preventInteractionWhenHidden();
         initWoodUI();
         initPDFViewer();
-        setupInstallButton(); // ✅ زر التثبيت في SVG
+        setupInstallButton();
         observeZIndexChanges();
-
         updateWelcomeMessages();
-
-        document.addEventListener('contextmenu', (e) => {
-            const target = e.target;
-            if (target.tagName === 'image' ||
-                target.tagName === 'IMG' ||
-                target.tagName === 'svg' ||
-                target.tagName === 'rect' ||
-                target.closest('svg')) {
-                e.preventDefault();
-                return false;
-            }
-        });
+        preventContextMenu();
     }
 
     console.log('✅ script.js تم تحميله بالكامل - جميع الوحدات جاهزة');
