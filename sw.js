@@ -2,7 +2,9 @@
    sw.js - Service Worker v2.1
    ======================================== */
 
-const CACHE_NAME = 'semester-4-cache-2026-04-05-02-00';
+// ✅ الإصدار يأتي من index.html عند التسجيل: sw.js?v=...
+// كده تغيير CACHE_NAME في config.js يكفي — بدون تعديل sw.js
+const CACHE_NAME = new URL(location.href).searchParams.get('v') || 'semester-4-cache-default';
 const urlsToCache = [
    './',
    './index.html',
