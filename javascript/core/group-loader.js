@@ -2,7 +2,7 @@
 // group-loader.js - تحميل المجموعات والصور و SVG
 // ============================================
 
-import { RAW_CONTENT_BASE, REPO_NAME, GITHUB_USER, TREE_API_URL, NAV_STATE } from './config.js';
+import { RAW_CONTENT_BASE, REPO_NAME, GITHUB_USER, TREE_API_URL, NAV_STATE, CACHE_NAME } from './config.js';
 import { getDisplayName, debounce, resetBrowserZoom } from './utils.js';
 import { pushNavigationState, goToWood } from './navigation.js';
 import { setCurrentGroup, setCurrentFolder, setGlobalFileTree, globalFileTree, currentGroup, currentFolder } from './state.js';
@@ -89,8 +89,6 @@ export function showLoadingScreen(groupLetter) {
     });
 }
 
-// ✅ hideLoadingScreen معرّفة هنا في group-loader.js فقط
-// لا يتم استيرادها من wood-interface.js لتجنب تعارض الأسماء
 export function hideLoadingScreen() {
     const loadingOverlay = document.getElementById('loading-overlay');
     if (!loadingOverlay) return;
@@ -134,7 +132,7 @@ export async function loadGroupSVG(groupLetter) {
 
     try {
         console.log(`🔄 تحميل: groups/group-${groupLetter}.svg`);
-        const cache = await caches.open('semester-3-cache-v1');
+        const cache = await caches.open(CACHE_NAME); // ✅ CACHE_NAME من config.js
         let cachedResponse = await cache.match(`groups/group-${groupLetter}.svg`);
         let response;
 
@@ -217,7 +215,6 @@ export function updateWoodLogo(groupLetter) {
 
     banner.onclick = (e) => {
         e.stopPropagation();
-        // ✅ reset zoom عند الضغط على شعار الجروب (زر تنقل)
         resetBrowserZoom();
         const groupSelectionScreen = document.getElementById('group-selection-screen');
         if (groupSelectionScreen) {
@@ -269,7 +266,6 @@ export async function initializeGroup(groupLetter) {
     showLoadingScreen(groupLetter);
     await Promise.all([fetchGlobalTree(), loadGroupSVG(groupLetter)]);
 
-    // ✅ استدعاء الدوال المحلية مباشرة (لا import ديناميكي هنا)
     updateDynamicSizes();
     await loadImages();
 }
@@ -296,7 +292,7 @@ export async function loadImages() {
             currentIndex++;
 
             try {
-                const cache = await caches.open('semester-3-cache-v1');
+                const cache = await caches.open(CACHE_NAME); // ✅ CACHE_NAME من config.js
                 const cachedImg = await cache.match(url);
                 if (cachedImg) {
                     console.log(`✅ الصورة موجودة في الكاش: ${url.split('/').pop()}`);
@@ -307,8 +303,7 @@ export async function loadImages() {
                         ...(document.getElementById('files-list-container')?.querySelectorAll('image') || [])
                     ];
                     allImages.forEach(si => {
-                        const dataSrc = si.getAttribute('data-src');
-                        if (dataSrc === url) {
+                        if (si.getAttribute('data-src') === url) {
                             si.setAttribute('href', imgUrl);
                         }
                     });
@@ -332,15 +327,14 @@ export async function loadImages() {
                     ...(document.getElementById('files-list-container')?.querySelectorAll('image') || [])
                 ];
                 allImages.forEach(si => {
-                    const dataSrc = si.getAttribute('data-src');
-                    if (dataSrc === url) {
+                    if (si.getAttribute('data-src') === url) {
                         si.setAttribute('href', this.src);
                         console.log(`✅ تم تحديث الصورة: ${url.split('/').pop()}`);
                     }
                 });
 
                 try {
-                    const cache = await caches.open('semester-3-cache-v1');
+                    const cache = await caches.open(CACHE_NAME); // ✅ CACHE_NAME من config.js
                     const imgResponse = await fetch(url);
                     if (imgResponse.ok) {
                         await cache.put(url, imgResponse);
@@ -378,22 +372,19 @@ export async function loadImages() {
 }
 
 // ---------- إنهاء التحميل ----------
-// ✅ hideLoadingScreen تُستدعى من group-loader نفسه (المعرّفة فوق)
-// ✅ updateDynamicSizes تُستدعى مباشرة كدالة محلية
 async function finishLoading() {
     loadingProgress.completedSteps = loadingProgress.totalSteps;
     loadingProgress.currentPercentage = 100;
     updateLoadProgress();
     console.log('✅ التحميل اكتمل 100% - جاري عرض المحتوى...');
 
-    // استيراد الدوال المطلوبة من الوحدات الأخرى فقط
     const { scan } = await import('../features/svg-processor.js');
     const { updateWoodInterface } = await import('../ui/wood-interface.js');
 
-    updateDynamicSizes();   // ✅ محلية من group-loader.js مباشرة
-    scan();                 // من svg-processor.js
-    updateWoodInterface();  // من wood-interface.js
-    goToWood();             // مستوردة من navigation.js في الأعلى
+    updateDynamicSizes();
+    scan();
+    updateWoodInterface();
+    goToWood();
 
     const mainSvg = document.getElementById('main-svg');
     if (mainSvg) {
@@ -402,7 +393,6 @@ async function finishLoading() {
         mainSvg.classList.add('loaded');
     }
 
-    // ✅ hideLoadingScreen المحلية مباشرة (لا استيراد من wood-interface)
     hideLoadingScreen();
     console.log('🎉 اكتمل التحميل والعرض');
 }
