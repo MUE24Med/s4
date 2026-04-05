@@ -138,24 +138,26 @@ export function setupInteractionToggle() {
 // زر تثبيت التطبيق داخل الـ SVG
 // ============================================
 export function setupInstallButton() {
+    _setupAndroidInstallButton();
+    _setupIOSInstallHint();
+}
+
+// ---------- Android / Chrome — زر داخل SVG ----------
+function _setupAndroidInstallButton() {
     const mainSvg = document.getElementById('main-svg');
     const fixedLayer = document.getElementById('fixed-controls-layer');
     if (!mainSvg || !fixedLayer) return;
 
-    // منع التكرار
     if (document.getElementById('install-svg-btn')) {
         console.warn('⚠️ install-svg-btn موجود بالفعل، تم التخطي');
         return;
     }
 
-    // ✅ نعمل g جديدة خارج fixed-controls-layer تماماً
-    // وندرجها مباشرة في main-svg كآخر عنصر = أعلى layer
     const installGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     installGroup.setAttribute('id', 'install-svg-btn');
     installGroup.style.cursor = 'pointer';
     installGroup.style.display = 'none';
 
-    // الخلفية
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     rect.setAttribute('x', '312');
     rect.setAttribute('y', '0');
@@ -165,7 +167,6 @@ export function setupInstallButton() {
     rect.setAttribute('fill', '#ffcc00');
     rect.setAttribute('filter', 'drop-shadow(0 3px 8px rgba(255,204,0,0.6))');
 
-    // النص
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttribute('x', '512');
     text.setAttribute('y', '27');
@@ -180,11 +181,8 @@ export function setupInstallButton() {
 
     installGroup.appendChild(rect);
     installGroup.appendChild(text);
-
-    // ✅ إضافة مباشرة لـ main-svg كآخر عنصر (أعلى كل شيء)
     mainSvg.appendChild(installGroup);
 
-    // إظهار لو الـ prompt جاهز مسبقاً
     if (window._pwaPrompt) {
         installGroup.style.display = '';
     }
@@ -195,6 +193,8 @@ export function setupInstallButton() {
 
     window.addEventListener('appinstalled', () => {
         installGroup.style.display = 'none';
+        const banner = document.getElementById('ios-install-banner');
+        if (banner) banner.classList.remove('show');
     });
 
     installGroup.addEventListener('click', async (e) => {
@@ -208,4 +208,28 @@ export function setupInstallButton() {
     });
 
     console.log('✅ زر التثبيت SVG جاهز');
+}
+
+// ---------- iOS Safari — Banner تعليمي ----------
+function _setupIOSInstallHint() {
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.navigator.standalone === true;
+    const dismissed = localStorage.getItem('ios_banner_dismissed');
+
+    if (!isIOS || isStandalone || dismissed) return;
+
+    const banner = document.getElementById('ios-install-banner');
+    if (!banner) return;
+
+    setTimeout(() => banner.classList.add('show'), 2500);
+
+    const closeBtn = document.getElementById('ios-banner-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            banner.classList.remove('show');
+            localStorage.setItem('ios_banner_dismissed', '1');
+        });
+    }
+
+    console.log('✅ iOS Install Banner جاهز');
 }
