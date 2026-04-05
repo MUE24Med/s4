@@ -1,10 +1,8 @@
 /* ========================================
-   sw.js - Service Worker v2.2
-   الكاش: يأتي من index.html عبر ?v=...
-   لتغيير الكاش: غيّر SW_CACHE_NAME في index.html فقط
+   sw.js - Service Worker
    ======================================== */
 
-const CACHE_NAME = new URL(location.href).searchParams.get('v') || 'semester-4-cache-default';
+const CACHE_NAME = 'semester-4-cache-20260404-1129';
 
 const urlsToCache = [
     './',
