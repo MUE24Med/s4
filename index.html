@@ -52,9 +52,7 @@
     #ios-install-banner {
       display: none;
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       z-index: 99999;
       background: #1a1a2e;
       color: #fff;
@@ -68,31 +66,12 @@
       gap: 12px;
     }
     #ios-install-banner.show { display: flex; }
-    #ios-install-banner img {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      flex-shrink: 0;
-    }
+    #ios-install-banner img { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; }
     #ios-install-banner .banner-text { flex: 1; line-height: 1.5; }
     #ios-install-banner .banner-text strong { display: block; margin-bottom: 2px; }
     #ios-install-banner .banner-text span { color: #aaa; font-size: 12px; }
-    #ios-install-banner .banner-close {
-      background: none;
-      border: none;
-      color: #aaa;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0 4px;
-      flex-shrink: 0;
-    }
-    #ios-install-banner .share-icon {
-      display: inline-block;
-      background: #007aff;
-      border-radius: 4px;
-      padding: 1px 5px;
-      font-size: 13px;
-    }
+    #ios-install-banner .banner-close { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
+    #ios-install-banner .share-icon { display: inline-block; background: #007aff; border-radius: 4px; padding: 1px 5px; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -324,7 +303,6 @@
         <rect id="back-btn" x="112" y="160" width="800" height="70" rx="15" />
         <text x="512" y="195" id="back-btn-text" text-anchor="middle" dominant-baseline="middle">➡️ إلى الخريطة ➡️</text>
       </g>
-      <!-- زر التثبيت يُنشأ ديناميكياً بواسطة setupInstallButton() في ui-controls.js -->
     </g>
   </svg>
 </div>
@@ -341,52 +319,56 @@
 <!-- السكريبت الرئيسي -->
 <script type="module" src="script.js"></script>
 
-<!-- Service Worker -->
-<script type="module">
-import { CACHE_NAME } from './javascript/core/config.js';
+<!-- ============================================================
+     Service Worker
+     ✅ لتغيير الكاش: غيّر SW_CACHE_NAME هنا فقط
+     sw.js و config.js لا يحتاجان تعديل
+     ============================================================ -->
+<script>
+(function () {
+  // ✅ المصدر الوحيد للحقيقة — غيّر هذا السطر فقط عند كل تحديث
+  const SW_CACHE_NAME = 'semester-4-cache-2026-04-05-03-07';
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // ✅ تمرير CACHE_NAME لـ sw.js عبر URL — تغيير config.js يكفي للتحديث
-    navigator.serviceWorker.register(`./sw.js?v=${CACHE_NAME}`)
-      .then(registration => {
-        console.log('✅ Service Worker مسجل');
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              if (confirm('🔄 يوجد تحديث جديد. هل تريد إعادة التحميل؟')) {
-                newWorker.postMessage({ action: 'skipWaiting' });
-                window.location.reload();
+  // احفظه في localStorage عشان config.js يقدر يقرأه
+  localStorage.setItem('sw_cache_name', SW_CACHE_NAME);
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register(`./sw.js?v=${SW_CACHE_NAME}`)
+        .then(registration => {
+          console.log('✅ Service Worker مسجل:', SW_CACHE_NAME);
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                if (confirm('🔄 يوجد تحديث جديد. هل تريد إعادة التحميل؟')) {
+                  newWorker.postMessage({ action: 'skipWaiting' });
+                  window.location.reload();
+                }
               }
-            }
+            });
           });
-        });
-      })
-      .catch(err => console.error('❌ فشل تسجيل SW:', err));
-  });
+        })
+        .catch(err => console.error('❌ فشل تسجيل SW:', err));
+    });
 
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      refreshing = true;
-      window.location.reload();
-    }
-  });
-}
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) { refreshing = true; window.location.reload(); }
+    });
+  }
+})();
 </script>
 
-<!-- PWA Install — يحفظ الـ prompt فقط، الزر يديره ui-controls.js -->
+<!-- PWA Install -->
 <script>
 (function () {
   window._pwaPrompt = null;
-
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     window._pwaPrompt = e;
     window.dispatchEvent(new Event('pwaInstallReady'));
   });
-
   window.addEventListener('appinstalled', () => {
     window._pwaPrompt = null;
     console.log('✅ التطبيق مثبت بالفعل');
@@ -394,20 +376,15 @@ if ('serviceWorker' in navigator) {
 })();
 </script>
 
-<!-- ===== iOS Install Banner ===== -->
+<!-- iOS Install Banner -->
 <script>
 (function () {
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const isStandalone = window.navigator.standalone === true;
   const dismissed = localStorage.getItem('ios_banner_dismissed');
-
   if (isIOS && !isStandalone && !dismissed) {
     const banner = document.getElementById('ios-install-banner');
-    // تأخير بسيط حتى تتحمل الصفحة
-    setTimeout(() => {
-      if (banner) banner.classList.add('show');
-    }, 2500);
-
+    setTimeout(() => { if (banner) banner.classList.add('show'); }, 2500);
     const closeBtn = document.getElementById('ios-banner-close');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
@@ -425,11 +402,10 @@ async function checkForUpdates() {
   try {
     const lastCheck = localStorage.getItem('last_update_check');
     const now = Date.now();
-    // فحص كل 5 دقائق فقط
     if (lastCheck && (now - parseInt(lastCheck)) < 300000) return;
 
     const response = await fetch(
-      'https://api.github.com/repos/MUE24Med/s4/commits/main', // ✅ تم التصحيح: s4 بدلاً من s3
+      'https://api.github.com/repos/MUE24Med/s4/commits/main',
       { cache: 'no-store', headers: { 'Accept': 'application/vnd.github.v3+json' } }
     );
     if (!response.ok) return;
@@ -459,9 +435,7 @@ async function checkForUpdates() {
   }
 }
 window.addEventListener('load', checkForUpdates);
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) checkForUpdates();
-});
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdates(); });
 </script>
 
 </body>
