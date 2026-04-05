@@ -342,10 +342,13 @@
 <script type="module" src="script.js"></script>
 
 <!-- Service Worker -->
-<script>
+<script type="module">
+import { CACHE_NAME } from './javascript/core/config.js';
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
+    // ✅ تمرير CACHE_NAME لـ sw.js عبر URL — تغيير config.js يكفي للتحديث
+    navigator.serviceWorker.register(`./sw.js?v=${CACHE_NAME}`)
       .then(registration => {
         console.log('✅ Service Worker مسجل');
         registration.addEventListener('updatefound', () => {
