@@ -9,8 +9,20 @@ export const NEW_API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${REPO_
 export const TREE_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/git/trees/main?recursive=1`;
 export const RAW_CONTENT_BASE = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/`;
 
-// ✅ اسم الكاش — غيّره هنا + في sw.js عند كل تحديث تريد force reload
-export const CACHE_NAME = 'semester-4-cache-2026-04-05-03-07';
+// ✅ CACHE_NAME يقرأ من sw.js عبر الـ Service Worker registration
+// لما تغير sw.js?v=... في index.html — config.js يتحدث تلقائياً
+export const CACHE_NAME = (() => {
+    try {
+        // لو في Service Worker نشط — اقرأ منه
+        const swUrl = navigator.serviceWorker?.controller?.scriptURL;
+        if (swUrl) {
+            const v = new URL(swUrl).searchParams.get('v');
+            if (v) return v;
+        }
+    } catch (_) {}
+    // fallback — اقرأ من localStorage لو اتحفظ قبل كده
+    return localStorage.getItem('sw_cache_name') || 'semester-4-cache-default';
+})();
 
 // الملفات المحمية (لا يتم تحديثها تلقائياً)
 export const PROTECTED_FILES = [
