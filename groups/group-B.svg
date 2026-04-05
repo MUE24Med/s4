@@ -92,10 +92,23 @@
     <image data-src="image/B/05.webp" width="1024" height="2454" />
 
 <!-- Sunday 05 الأحد -->
-<g transform="translate(253,0)">
-<rect x="0" y="315" height="478" class="m w" data-href="1"/>
-<rect x="0" y="794" height="490" class="m w" data-href="2"/>
-<rect x="0" y="1285" height="522" class="m w" data-href="4"/>
+<g transform="translate(253,0)"> 
+<rect x="253.39503586060238" y="284.7178528369198" width="114.4656808067748" height="560.9299458257353" class="image-mapper-shape" data-index="1"></rect>
+</g>
+</a>
+<a xlink:href="#" target="---" xlink:title="">
+<g>
+<rect x="253.75308030412913" y="846.0706624788731" width="115.47889076210907" height="552.1245359285529" class="image-mapper-shape" data-index="2"></rect>
+</g>
+</a>
+<a xlink:href="#" target="---" xlink:title="">
+<g>
+<rect x="253.91459332100226" y="1400.4586134375068" width="114.10305685747977" height="470.2945548861187" class="image-mapper-shape" data-index="3"></rect>
+</g>
+</a>
+<a xlink:href="#" target="---" xlink:title="">
+<g>
+<rect x="254.16464344939595" y="1869.8071928037248" width="114.68565656892883" height="360.4050078732507" class="image-mapper-shape selected" data-index="4"></rect>
 </g>
 
 <!-- Monday 05 الإثنين -->
