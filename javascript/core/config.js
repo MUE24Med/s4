@@ -9,6 +9,9 @@ export const NEW_API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${REPO_
 export const TREE_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/git/trees/main?recursive=1`;
 export const RAW_CONTENT_BASE = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/`;
 
+// ✅ اسم الكاش — غيّره هنا + في sw.js عند كل تحديث تريد force reload
+export const CACHE_NAME = 'semester-4-cache-2026-04-05-02-00';
+
 // الملفات المحمية (لا يتم تحديثها تلقائياً)
 export const PROTECTED_FILES = [
     'image/0.webp',
