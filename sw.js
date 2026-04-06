@@ -14,6 +14,7 @@ const urlsToCache = [
     './tracker.js',
     './script.js',
     './manifest.json',
+    './sw-register.js',
     './javascript/core/config.js',
     './javascript/core/utils.js',
     './javascript/core/navigation.js',
