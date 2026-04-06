@@ -108,7 +108,7 @@
 <!-- Monday 05 الإثنين -->
 <g transform="translate(368,0)">
 
-<rect x="0" y="314" height="478" class="m wl" data-href="histology-01.pdf"/>
+<rect x="0" y="314" height="478" class="m w l" data-href="histology-01.pdf"/>
 
 <rect x="0" y="1287" height="519" class="m w" data-href="7"/>
 
