@@ -107,9 +107,13 @@
 
 <!-- Monday 05 الإثنين -->
 <g transform="translate(368,0)">
-<rect x="0" y="314" height="478" class="m w" data-href="6"/>
+
+<rect x="0" y="314" height="478" class="m wl" data-href="histology-01.pdf"/>
+
 <rect x="0" y="1287" height="519" class="m w" data-href="7"/>
+
 <rect x="0" y="1807" height="397" class="m w" data-href="8"/>
+
 <rect x="0" y="2225" height="78"  class="m w" data-href="9"/>
 </g>
 
