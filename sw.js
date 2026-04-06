@@ -2,7 +2,7 @@
    sw.js - Service Worker
    ======================================== */
 
-const CACHE_NAME = 'semester-4-cache-0000';
+const CACHE_NAME = 'semester-4-cache-0010';
 
 const urlsToCache = [
     './',
