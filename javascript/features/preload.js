@@ -1,6 +1,6 @@
 // ============================================
 // preload.js - نظام التحميل المسبق (التحميل الأول فقط)
-// يحمل: JS + CSS + صور ثابتة + PDF.js
+// ✅ محسّن: تحميل متوازٍ بدل sequential
 // ============================================
 
 const FILES_TO_LOAD = [
@@ -83,14 +83,14 @@ async function loadFile(url, cacheName) {
         const cached = await cache.match(url);
 
         if (cached) {
-            console.log(`✅ كاش: ${url}`);
-        } else {
-            console.log(`🌐 تحميل: ${url}`);
-            const response = await fetch(url);
-            if (response.ok) {
-                await cache.put(url, response.clone());
-                console.log(`💾 حفظ: ${url}`);
-            }
+            // موجود في الكاش — لا حاجة لأي طلب
+            return;
+        }
+
+        // مش في الكاش — جيبه من الشبكة واحفظه
+        const response = await fetch(url);
+        if (response.ok) {
+            await cache.put(url, response.clone());
         }
     } catch (error) {
         console.warn(`⚠️ تعذّر تحميل: ${url}`, error);
@@ -120,21 +120,25 @@ export function initPreload(onComplete) {
     const fileStatus  = document.getElementById('fileStatus');
     const continueBtn = document.getElementById('continueBtn');
 
+    // ✅ atomic counter آمن للتحديث من promises متوازية
     let loadedCount = 0;
     const total = FILES_TO_LOAD.length;
 
-    function updateProgress() {
+    function updateProgress(fileName) {
         const pct = Math.round((loadedCount / total) * 100);
         if (progressBar) {
             progressBar.style.width = pct + '%';
             progressBar.textContent = pct + '%';
         }
+        if (fileStatus && fileName) {
+            fileStatus.textContent = `✔ ${fileName}`;
+        }
         updateBulbs(pct);
     }
 
     async function startLoading() {
-        // ─── قراءة اسم الكاش من config ───
-        let cacheName = 'semester-cache-v1';
+        // ─── قراءة اسم الكاش ───
+        let cacheName = localStorage.getItem('sw_cache_name') || 'semester-cache-v1';
         try {
             const { CACHE_NAME } = await import('../core/config.js');
             if (CACHE_NAME) cacheName = CACHE_NAME;
@@ -142,11 +146,17 @@ export function initPreload(onComplete) {
 
         updateBulbs(0);
 
-        for (const file of FILES_TO_LOAD) {
-            await loadFile(file, cacheName);
-            loadedCount++;
-            updateProgress();
-            if (fileStatus) fileStatus.textContent = `✔ ${file.split('/').pop()}`;
+        // ✅ تحميل متوازٍ بـ CONCURRENCY = 6 (أسرع بكتير من sequential)
+        const CONCURRENCY = 6;
+
+        for (let i = 0; i < FILES_TO_LOAD.length; i += CONCURRENCY) {
+            const chunk = FILES_TO_LOAD.slice(i, i + CONCURRENCY);
+
+            await Promise.all(chunk.map(async (file) => {
+                await loadFile(file, cacheName);
+                loadedCount++;
+                updateProgress(file.split('/').pop());
+            }));
         }
 
         if (fileStatus) fileStatus.textContent = '🎉 اكتمل التحميل!';
