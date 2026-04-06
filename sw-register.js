@@ -1,9 +1,7 @@
-
-<!-- ============================================================
-     Service Worker
-     ✅ لتغيير الكاش: غيّر SW_CACHE_NAME هنا فقط
-     ============================================================ -->
-<script>
+/* ============================================================
+   sw-register.js - Service Worker Registration
+   ✅ لتغيير الكاش: غيّر SW_CACHE_NAME هنا فقط
+   ============================================================ */
 (function () {
   // ✅ المصدر الوحيد للحقيقة — غيّر هذا السطر فقط عند كل تحديث
   const SW_CACHE_NAME = 'semester-4-cache-2026-04-05-03-07';
@@ -13,7 +11,6 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      // ✅ نمرر CACHE_NAME كـ query param — sw.js يقرأه تلقائياً
       navigator.serviceWorker.register(`./sw.js?v=${SW_CACHE_NAME}`)
         .then(registration => {
           console.log('✅ Service Worker مسجل:', SW_CACHE_NAME);
@@ -38,4 +35,3 @@
     });
   }
 })();
-</script>
