@@ -1,8 +1,11 @@
 /* ========================================
    sw.js - Service Worker
+   ✅ محسّن: CACHE_NAME من URL param (متزامن مع index.html)
    ======================================== */
 
-const CACHE_NAME = 'semester-4-cache-jvfy';
+// ✅ اقرأ اسم الكاش من URL بدل hardcode — يتطابق تلقائياً مع index.html
+const url = new URL(self.location.href);
+const CACHE_NAME = url.searchParams.get('v') || 'semester-4-cache-v1';
 
 const urlsToCache = [
     './',
@@ -34,13 +37,13 @@ const urlsToCache = [
 ];
 
 // ============================================================
-// INSTALL
+// INSTALL — تحميل متوازٍ بدل sequential
 // ============================================================
 self.addEventListener('install', event => {
     console.log('🔧 SW: تثبيت الإصدار', CACHE_NAME);
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache =>
-            // ✅ FIX: استبدال cache.add بـ fetch + put لتجنب TypeError على الملفات المفقودة
+            // ✅ كل الملفات بتتحمل في نفس الوقت
             Promise.all(
                 urlsToCache.map(url =>
                     fetch(url)
@@ -53,12 +56,12 @@ self.addEventListener('install', event => {
                         })
                         .catch(err => {
                             console.warn(`⚠️ فشل تخزين: ${url}`, err.message);
-                            return Promise.resolve(); // لا تكسر التثبيت بسبب ملف واحد
+                            return Promise.resolve();
                         })
                 )
             )
         ).then(() => {
-            console.log('✅ SW: تم التثبيت');
+            console.log('✅ SW: تم التثبيت -', CACHE_NAME);
             return self.skipWaiting();
         })
     );
@@ -87,7 +90,7 @@ self.addEventListener('activate', event => {
 });
 
 // ============================================================
-// FETCH — Cache First مع Background Update
+// FETCH — Cache First
 // ============================================================
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
@@ -111,8 +114,8 @@ async function handleFetch(request) {
     const cached = await caches.match(request);
 
     if (cached) {
-        // ✅ Background update — request.clone() قبل أي استخدام تاني
-        if (shouldCache(request.url)) {
+        // ✅ Background update — بس للـ HTML/CSS/JS مش الصور (توفير bandwidth)
+        if (shouldBackgroundUpdate(request.url)) {
             updateCacheInBackground(request.clone());
         }
         return cached;
@@ -122,7 +125,6 @@ async function handleFetch(request) {
     try {
         const response = await fetch(request);
         if (shouldCache(request.url) && response && response.status === 200) {
-            // ✅ clone قبل ما نرجع الـ response
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then(cache => {
                 cache.put(request, responseToCache).catch(() => {});
@@ -138,7 +140,7 @@ async function handleFetch(request) {
     }
 }
 
-// ✅ Background update منفصل — request.clone() خاص بيه
+// ✅ Background update — بس للملفات اللي بتتغير (مش الصور والـ PDF)
 function updateCacheInBackground(requestClone) {
     fetch(requestClone).then(response => {
         if (response && response.status === 200) {
@@ -159,6 +161,20 @@ function shouldCache(url) {
         if (pathname.includes('/javascript/')) return true;
         if (pathname.includes('/image/')) return true;
         if (pathname.match(/\.(html|css|js|webp|png|jpg|jpeg|svg|pdf|json|woff2?)$/)) return true;
+        return false;
+    } catch (_) {
+        return false;
+    }
+}
+
+// ✅ Background update بس للملفات النصية — مش الصور والـ PDF (توفير bandwidth)
+function shouldBackgroundUpdate(url) {
+    try {
+        const pathname = new URL(url).pathname;
+        if (pathname.includes('sw.js')) return false;
+        if (pathname.match(/\.(webp|png|jpg|jpeg|pdf|woff2?)$/)) return false; // صور وملفات ثابتة — مش محتاجة update
+        if (pathname.match(/\.(html|css|js|json)$/)) return true;
+        if (pathname.includes('/javascript/')) return true;
         return false;
     } catch (_) {
         return false;
@@ -249,4 +265,4 @@ self.addEventListener('message', event => {
     }
 });
 
-console.log(`%c✅ SW v2.2 - الكاش: ${CACHE_NAME}`, 'color:#00ff00;font-weight:bold;');
+console.log(`%c✅ SW v2.3 - الكاش: ${CACHE_NAME}`, 'color:#00ff00;font-weight:bold;');
