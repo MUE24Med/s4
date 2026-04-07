@@ -15,7 +15,6 @@ let loadingProgress = {
     currentPercentage: 0
 };
 
-// ✅ الصور الثابتة — محملة في preload، بس محتاجة href في DOM
 const STATIC_IMAGES = ['image/wood.webp', 'image/Upper_wood.webp'];
 
 // ---------- شجرة الملفات ----------
@@ -31,18 +30,8 @@ export async function fetchGlobalTree() {
     }
 }
 
-// ---------- حفظ وتحميل المجموعة ----------
 export function saveSelectedGroup(group) {
     setCurrentGroup(group);
-}
-
-export function loadSelectedGroup() {
-    const saved = localStorage.getItem('selectedGroup');
-    if (saved) {
-        setCurrentGroup(saved);
-        return true;
-    }
-    return false;
 }
 
 // ---------- شاشة التحميل ----------
@@ -78,7 +67,6 @@ export function showLoadingScreen(groupLetter) {
     }
 
     loadingProgress = { totalSteps: 0, completedSteps: 0, currentPercentage: 0 };
-
     document.querySelectorAll('.light-bulb').forEach(bulb => bulb.classList.remove('on'));
     loadingOverlay.classList.add('active');
     console.log(`🔦 شاشة التحميل نشطة: Group ${groupLetter}`);
@@ -92,25 +80,17 @@ export function hideLoadingScreen() {
     const loadingOverlay = document.getElementById('loading-overlay');
     if (!loadingOverlay) return;
     loadingOverlay.classList.remove('active');
-
     const splashImage = document.getElementById('splash-image');
     if (splashImage) splashImage.style.display = '';
-
     const textElement = document.getElementById('group-text-display');
     if (textElement) textElement.style.display = 'none';
-
     console.log('✅ تم إخفاء شاشة التحميل');
 }
 
 export function updateLoadProgress() {
-    if (loadingProgress.totalSteps === 0) {
-        console.warn('⚠️ totalSteps = 0');
-        return;
-    }
+    if (loadingProgress.totalSteps === 0) return;
     const progress = (loadingProgress.completedSteps / loadingProgress.totalSteps) * 100;
     loadingProgress.currentPercentage = Math.min(100, Math.round(progress));
-    console.log(`📊 التقدم: ${loadingProgress.currentPercentage}% (${loadingProgress.completedSteps}/${loadingProgress.totalSteps})`);
-
     const pct = loadingProgress.currentPercentage;
     if (pct >= 20) document.getElementById('bulb-4')?.classList.add('on');
     if (pct >= 40) document.getElementById('bulb-3')?.classList.add('on');
@@ -118,7 +98,6 @@ export function updateLoadProgress() {
     if (pct >= 80) document.getElementById('bulb-1')?.classList.add('on');
 }
 
-// ---------- تطبيق href على صور DOM ----------
 function applyImageSrc(url, src) {
     const mainSvg = document.getElementById('main-svg');
     const filesContainer = document.getElementById('files-list-container');
@@ -133,124 +112,85 @@ function applyImageSrc(url, src) {
     });
 }
 
-// ---------- تحميل صورة واحدة مع الكاش ----------
 async function loadSingleImage(url) {
     try {
         const cache = await caches.open(CACHE_NAME);
         const cached = await cache.match(url);
         if (cached) {
-            console.log(`✅ صورة من الكاش: ${url.split('/').pop()}`);
             const blob = await cached.blob();
             applyImageSrc(url, URL.createObjectURL(blob));
             return;
         }
-    } catch (e) {
-        console.warn(`⚠️ خطأ في كاش الصورة: ${e}`);
-    }
-
+    } catch (e) {}
     return new Promise((resolve) => {
         const img = new Image();
-
         img.onload = async function () {
             applyImageSrc(url, this.src);
-            console.log(`✅ صورة محملة: ${url.split('/').pop()}`);
             try {
                 const cache = await caches.open(CACHE_NAME);
                 const res = await fetch(url);
                 if (res.ok) await cache.put(url, res);
-            } catch (e) {
-                console.warn(`⚠️ فشل حفظ الصورة: ${e}`);
-            }
+            } catch (e) {}
             resolve();
         };
-
-        img.onerror = function () {
-            console.error(`❌ فشل تحميل: ${url}`);
-            resolve();
-        };
-
+        img.onerror = () => resolve();
         img.src = url;
     });
 }
 
-// ---------- تحميل SVG الخاص بالمجموعة ----------
 export async function loadGroupSVG(groupLetter) {
     const groupContainer = document.getElementById('group-specific-content');
-    if (!groupContainer) {
-        console.error('❌ group-specific-content غير موجود');
-        return;
-    }
+    if (!groupContainer) return;
     groupContainer.innerHTML = '';
 
     const svgPath = `groups/group-${groupLetter}.svg`;
-
     try {
-        console.log(`🔄 تحميل: ${svgPath}`);
         const cache = await caches.open(CACHE_NAME);
         let response = await cache.match(svgPath);
-
-        if (response) {
-            console.log('✅ SVG من الكاش');
-        } else {
-            console.log('🌐 تحميل SVG من الشبكة');
+        if (!response) {
             response = await fetch(svgPath);
             if (response.ok) cache.put(svgPath, response.clone());
         }
-
         if (!response.ok) {
-            console.warn(`⚠️ ملف SVG للمجموعة ${groupLetter} غير موجود`);
             loadingProgress.completedSteps++;
             updateLoadProgress();
             return;
         }
-
         const svgText = await response.text();
         const match = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
-
         if (match && match[1]) {
             groupContainer.innerHTML = match[1];
-            console.log(`✅ تم حقن ${groupContainer.children.length} عنصر`);
-
             const injectedImages = groupContainer.querySelectorAll('image[data-src]');
-            console.log(`🖼️ عدد الصور في SVG: ${injectedImages.length}`);
-
             imageUrlsToLoad = [];
             injectedImages.forEach(img => {
                 const src = img.getAttribute('data-src');
                 if (!src) return;
-                const isGroupImage =
-                    src.includes(`image/${groupLetter}/`) ||
+                const isGroupImage = src.includes(`image/${groupLetter}/`) ||
                     src.includes(`logo-${groupLetter}`) ||
                     src.includes(`logo-wood-${groupLetter}`);
                 if (isGroupImage && !imageUrlsToLoad.includes(src)) {
                     imageUrlsToLoad.push(src);
                 }
             });
-
             const allToLoad = [...STATIC_IMAGES, ...imageUrlsToLoad];
             loadingProgress.totalSteps = allToLoad.length;
             loadingProgress.completedSteps = 0;
             updateLoadProgress();
-            console.log(`📋 إجمالي الصور (${allToLoad.length}): ثابتة=${STATIC_IMAGES.length} + جروب=${imageUrlsToLoad.length}`);
         } else {
-            console.error('❌ فشل استخراج محتوى SVG');
             loadingProgress.totalSteps = 1;
             loadingProgress.completedSteps = 1;
             updateLoadProgress();
         }
     } catch (err) {
-        console.error(`❌ خطأ في loadGroupSVG:`, err);
         loadingProgress.totalSteps = 1;
         loadingProgress.completedSteps = 1;
         updateLoadProgress();
     }
 }
 
-// ---------- تحميل SVG السكشن ودمجه مع محتوى المجموعة ----------
 async function loadSectionSVG(groupLetter, sectionNum) {
     const groupContainer = document.getElementById('group-specific-content');
     if (!groupContainer) return;
-
     const sectionSvgPath = `sections/group-${groupLetter}/section-${sectionNum}.svg`;
     try {
         const cache = await caches.open(CACHE_NAME);
@@ -260,7 +200,7 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             if (response.ok) cache.put(sectionSvgPath, response.clone());
         }
         if (!response.ok) {
-            console.warn(`⚠️ SVG السكشن ${sectionNum} غير موجود، سيتم استخدام المجموعة فقط`);
+            console.warn(`⚠️ SVG السكشن ${sectionNum} غير موجود`);
             return;
         }
         const svgText = await response.text();
@@ -270,39 +210,28 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             const children = fragment.children;
             while (children.length) {
                 const child = children[0];
-                if (child.tagName === 'g') {
-                    child.classList.add('section-specific');
-                } else if (child.tagName === 'rect') {
+                if (child.tagName === 'g' || child.tagName === 'rect') {
                     child.classList.add('section-specific');
                 }
                 groupContainer.appendChild(child);
             }
-            console.log(`✅ تم دمج SVG السكشن ${sectionNum} (${groupContainer.children.length} عناصر)`);
-            // تحديث قائمة الصور للتحميل
             const newImages = groupContainer.querySelectorAll('image[data-src]');
             newImages.forEach(img => {
                 const src = img.getAttribute('data-src');
-                if (src && !imageUrlsToLoad.includes(src)) {
-                    imageUrlsToLoad.push(src);
-                }
+                if (src && !imageUrlsToLoad.includes(src)) imageUrlsToLoad.push(src);
             });
-        } else {
-            console.error('❌ فشل استخراج محتوى SVG السكشن');
         }
     } catch (err) {
         console.error(`❌ خطأ في تحميل SVG السكشن:`, err);
     }
 }
 
-// ---------- تحديث شعار الخشب ----------
 export function updateWoodLogo(groupLetter) {
     const dynamicGroup = document.getElementById('dynamic-links-group');
     if (!dynamicGroup) return;
-
     const oldBanner = dynamicGroup.querySelector('.wood-banner-animation');
     if (oldBanner) oldBanner.remove();
     if (currentFolder !== "") return;
-
     const banner = document.createElementNS("http://www.w3.org/2000/svg", "image");
     banner.setAttribute("href", `image/logo-wood-${groupLetter}.webp`);
     banner.setAttribute("x", "197.20201666994924");
@@ -313,7 +242,6 @@ export function updateWoodLogo(groupLetter) {
     banner.style.mixBlendMode = "multiply";
     banner.style.opacity = "0.9";
     banner.style.pointerEvents = "auto";
-
     banner.onclick = (e) => {
         e.stopPropagation();
         resetBrowserZoom();
@@ -325,7 +253,6 @@ export function updateWoodLogo(groupLetter) {
         goToWood();
         pushNavigationState(NAV_STATE.GROUP_SELECTION);
     };
-
     dynamicGroup.appendChild(banner);
 }
 
@@ -335,6 +262,7 @@ export async function showSectionSelection(groupLetter) {
     const sectionScreen = document.getElementById('section-selection-screen');
     if (!sectionScreen) return;
 
+    // إخفاء شاشة المجموعات وإظهار شاشة السكاشن
     groupSelectionScreen.classList.add('hidden');
     groupSelectionScreen.style.display = 'none';
     sectionScreen.classList.remove('hidden');
@@ -365,7 +293,7 @@ export async function showSectionSelection(groupLetter) {
     const backBtn = document.getElementById('back-to-groups-from-section');
     if (backBtn) {
         backBtn.onclick = () => {
-            // العودة لاختيار المجموعة (مسح السكشن)
+            // العودة لاختيار المجموعة (مسح السكشن المخزن)
             setCurrentSection(null);
             sectionScreen.classList.add('hidden');
             groupSelectionScreen.classList.remove('hidden');
@@ -382,30 +310,20 @@ async function selectSection(sectionNum, groupLetter) {
     await initializeGroup(groupLetter, sectionNum);
 }
 
-// ---------- تهيئة المجموعة (تقبل سكشن إجباري) ----------
-export async function initializeGroup(groupLetter, sectionNum = null) {
-    // السكشن إجباري: إذا لم يتم تمرير سكشن ولا يوجد في localStorage، نعرض شاشة السكاشن
+// ---------- تهيئة المجموعة (تستقبل سكشن إجباري) ----------
+export async function initializeGroup(groupLetter, sectionNum) {
     if (!sectionNum) {
-        const savedSection = localStorage.getItem('selectedSection');
-        if (savedSection && !isNaN(parseInt(savedSection))) {
-            sectionNum = parseInt(savedSection);
-        } else {
-            console.log('⚠️ لا يوجد سكشن محدد، سيتم عرض شاشة اختيار السكشن');
-            await showSectionSelection(groupLetter);
-            return;
-        }
+        console.error('❌ initializeGroup requires a section number');
+        return;
     }
-
     console.log(`🚀 تهيئة المجموعة: ${groupLetter}, سكشن ${sectionNum}`);
 
     const previousGroup = localStorage.getItem('selectedGroup');
     if (previousGroup && previousGroup !== groupLetter) {
-        console.log(`🔄 تغيير الجروب من ${previousGroup} إلى ${groupLetter} - مسح الكاش القديم`);
         const cacheNames = await caches.keys();
         for (const name of cacheNames) {
             if (name.includes(`group-${previousGroup}`)) {
                 await caches.delete(name);
-                console.log(`🗑️ تم مسح: ${name}`);
             }
         }
     }
@@ -431,25 +349,18 @@ export async function initializeGroup(groupLetter, sectionNum = null) {
 
     showLoadingScreen(groupLetter);
     await Promise.all([fetchGlobalTree(), loadGroupSVG(groupLetter)]);
-
     await loadSectionSVG(groupLetter, sectionNum);
 
     updateDynamicSizes();
     await loadImages();
 }
 
-// ---------- تحميل كل الصور ----------
 export async function loadImages() {
     const allToLoad = [...STATIC_IMAGES, ...imageUrlsToLoad];
-
     if (allToLoad.length === 0) {
-        console.warn('⚠️ لا توجد صور للتحميل');
         finishLoading();
         return;
     }
-
-    console.log(`🖼️ بدء تحميل ${allToLoad.length} صورة...`);
-
     const MAX_CONCURRENT = 3;
     for (let i = 0; i < allToLoad.length; i += MAX_CONCURRENT) {
         const batch = allToLoad.slice(i, i + MAX_CONCURRENT);
@@ -459,16 +370,13 @@ export async function loadImages() {
             updateLoadProgress();
         }));
     }
-
     finishLoading();
 }
 
-// ---------- إنهاء التحميل ----------
 async function finishLoading() {
     loadingProgress.completedSteps = loadingProgress.totalSteps;
     loadingProgress.currentPercentage = 100;
     updateLoadProgress();
-    console.log('✅ التحميل اكتمل 100%');
 
     const { scan } = await import('../features/svg-processor.js');
     const { updateWoodInterface } = await import('../ui/wood-interface.js');
@@ -484,42 +392,29 @@ async function finishLoading() {
         mainSvg.style.visibility = 'visible';
         mainSvg.classList.add('loaded');
     }
-
     hideLoadingScreen();
-    console.log('🎉 اكتمل التحميل والعرض');
 }
 
-// ---------- تحديث أحجام SVG ديناميكياً ----------
 export function updateDynamicSizes() {
     const mainSvg = document.getElementById('main-svg');
     if (!mainSvg) return;
-
     const allImages = mainSvg.querySelectorAll('image[width][height]');
-    console.log(`📏 عدد جميع الصور: ${allImages.length}`);
-    if (allImages.length === 0) {
-        console.warn('⚠️ لم يتم العثور على صور');
-        return;
-    }
-
+    if (allImages.length === 0) return;
     let maxX = 0;
     let maxY = 2454;
-
     allImages.forEach(img => {
         const g = img.closest('g[transform]');
         let translateX = 0;
         if (g) {
-            const match = g.getAttribute('transform')
-                .match(/translate\s*\(([\d.-]+)(?:[ ,]+([\d.-]+))?\s*\)/);
+            const match = g.getAttribute('transform').match(/translate\s*\(([\d.-]+)(?:[ ,]+([\d.-]+))?\s*\)/);
             if (match) translateX = parseFloat(match[1]) || 0;
         }
-        const imgWidth  = parseFloat(img.getAttribute('width'))  || 0;
+        const imgWidth = parseFloat(img.getAttribute('width')) || 0;
         const imgHeight = parseFloat(img.getAttribute('height')) || 0;
-        const imgX      = parseFloat(img.getAttribute('x'))      || 0;
-        const totalX    = translateX + imgX + imgWidth;
-        if (totalX  > maxX) maxX  = totalX;
+        const imgX = parseFloat(img.getAttribute('x')) || 0;
+        const totalX = translateX + imgX + imgWidth;
+        if (totalX > maxX) maxX = totalX;
         if (imgHeight > maxY) maxY = imgHeight;
     });
-
     mainSvg.setAttribute('viewBox', `0 0 ${maxX} ${maxY}`);
-    console.log(`✅ viewBox: 0 0 ${maxX} ${maxY}`);
 }
