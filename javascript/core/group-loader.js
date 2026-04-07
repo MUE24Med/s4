@@ -192,6 +192,7 @@ async function loadSectionSVG(groupLetter, sectionNum) {
     const groupContainer = document.getElementById('group-specific-content');
     if (!groupContainer) return;
     const sectionSvgPath = `sections/group-${groupLetter}/section-${sectionNum}.svg`;
+    console.log('📂 محاولة تحميل:', sectionSvgPath);
     try {
         const cache = await caches.open(CACHE_NAME);
         let response = await cache.match(sectionSvgPath);
@@ -199,12 +200,15 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             response = await fetch(sectionSvgPath);
             if (response.ok) cache.put(sectionSvgPath, response.clone());
         }
+        console.log('📊 Response status:', response.status, response.ok);
         if (!response.ok) {
             console.warn(`⚠️ SVG السكشن ${sectionNum} غير موجود`);
             return;
         }
         const svgText = await response.text();
+        console.log('📝 SVG text length:', svgText.length);
         const match = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+        console.log('🔍 Match result:', !!match);
         if (match && match[1]) {
             const fragment = document.createRange().createContextualFragment(match[1]);
             const children = fragment.children;
