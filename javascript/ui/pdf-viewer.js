@@ -324,9 +324,10 @@ export function openWithDrive(item) {
     console.log('💾 فتح بـ Google Drive:', driveUrl);
 }
 
-// ✅ الإصلاح: فتح الرابط مباشرة بدل Blob
-// كل المتصفحات الحديثة (Chrome / Firefox / Safari / Edge) تعرض PDF inline تلقائيًا
-// الكود القديم كان يبني Blob HTML ويفتحها كـ popup — المتصفحات الحديثة تحظره وتحمّله بدل ما تفتحه
+// ✅ الإصلاح: فتح PDF بطريقة متوافقة مع Chrome و Samsung Browser و Edge
+// - Chrome: window.open بيرجع null أو شاشة سوداء لو مفيش user gesture مباشر
+// - Samsung Browser: بيسأل عن درايف أو تحميل لأن ما بيعرفش يفتح PDF inline
+// - الحل: نستخدم <a> tag مع click() مباشرة — ده بيتعامل معاه كـ user gesture حقيقي
 export function openWithBrowser(item) {
     if (!item) {
         console.error('❌ openWithBrowser: item is null');
@@ -334,7 +335,16 @@ export function openWithBrowser(item) {
     }
 
     const url = `${RAW_CONTENT_BASE}${item.path}`;
-    window.open(url, '_blank');
+
+    // استخدام <a> tag بدل window.open — أكثر توافقاً مع جميع المتصفحات
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    // لا نضع a.download حتى لا نجبر التحميل — نترك المتصفح يقرر (عرض أو تحميل)
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => document.body.removeChild(a), 100);
 
     if (typeof trackSvgOpen === 'function') {
         trackSvgOpen(item.path);
@@ -565,8 +575,11 @@ export function initPDFViewer() {
                 if (fileUrl) {
                     const a = document.createElement('a');
                     a.href = fileUrl;
-                    a.download = fileUrl.split('/').pop();
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    document.body.appendChild(a);
                     a.click();
+                    setTimeout(() => document.body.removeChild(a), 100);
                 }
             }
         });
