@@ -331,15 +331,55 @@ export function openWithBrowser(item) {
     }
 
     const url = `${RAW_CONTENT_BASE}${item.path}`;
-    // الرابط المباشر - كل متصفح يتعامل مع PDF بطريقته الخاصة
-    window.open(url, '_blank');
+    const isEdge = /Edg\//.test(navigator.userAgent);
+
+    if (isEdge) {
+        // Edge يفتح PDF مباشرة بـ built-in Adobe reader بدون تحميل
+        // طالما السيرفر يرجع Content-Type: application/pdf
+        window.open(url, '_blank');
+        console.log('🌐 Edge: فتح مباشر بـ Adobe reader المدمج:', url);
+    } else {
+        // باقي المتصفحات: صفحة wrapper بـ <object> لضمان العرض inline
+        const fileName = item.path.split('/').pop();
+        const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${fileName}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #404040; }
+  object { width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+<object data="${url}#toolbar=1&navpanes=1&scrollbar=1" type="application/pdf" width="100%" height="100%">
+  <p style="color:#fff;text-align:center;padding:20px">
+    المتصفح لا يدعم عرض PDF —
+    <a href="${url}" style="color:#90caf9">اضغط هنا لفتحه</a>
+  </p>
+</object>
+</body>
+</html>`;
+
+        const blob = new Blob([html], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+        const win = window.open(blobUrl, '_blank');
+
+        if (win) {
+            win.addEventListener('load', () => URL.revokeObjectURL(blobUrl), { once: true });
+        } else {
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+        }
+        console.log('🌐 فتح بالمتصفح (inline object):', url);
+    }
 
     if (typeof trackSvgOpen === 'function') {
         trackSvgOpen(item.path);
     }
 
     closeOpenOptions();
-    console.log('🌐 فتح بالمتصفح (رابط مباشر):', url);
 }
 
 export function toggleMozillaToolbar() {
