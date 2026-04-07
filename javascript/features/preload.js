@@ -1,6 +1,6 @@
 // ============================================
 // preload.js - نظام التحميل المسبق (التحميل الأول فقط)
-// المعدل: تحميل صور الخشب بالتوازي واستبعاد صور شاشة الاختيار
+// يحمل: JS + CSS + صور ثابتة + PDF.js
 // ============================================
 
 const FILES_TO_LOAD = [
@@ -33,7 +33,9 @@ const FILES_TO_LOAD = [
     './javascript/features/leaderboard-ui.js',
     './javascript/features/mini-game.js',
 
-    // ───── صور الواجهة الثابتة (الخشب فقط) ─────
+    // ───── صور ثابتة ─────
+    './image/0.webp',
+    './image/0.png',
     './image/wood.webp',
     './image/Upper_wood.webp',
 
@@ -97,6 +99,7 @@ async function loadFile(url, cacheName) {
 
 // ─────────────────────────────────────────
 // بدء التحميل المسبق
+// @param {Function} onComplete - تُستدعى بعد اكتمال التحميل
 // ─────────────────────────────────────────
 export function initPreload(onComplete) {
     const preloadScreen = document.getElementById('preload-screen');
@@ -104,7 +107,7 @@ export function initPreload(onComplete) {
 
     preloadScreen.classList.remove('hidden');
 
-    // إخفاء المحتوى الرئيسي لضمان التركيز على شاشة التحميل
+    // إخفاء المحتوى الرئيسي
     const mainContent = [
         document.getElementById('group-selection-screen'),
         document.getElementById('js-toggle-container'),
@@ -130,6 +133,7 @@ export function initPreload(onComplete) {
     }
 
     async function startLoading() {
+        // ─── قراءة اسم الكاش من config ───
         let cacheName = 'semester-cache-v1';
         try {
             const { CACHE_NAME } = await import('../core/config.js');
@@ -138,11 +142,12 @@ export function initPreload(onComplete) {
 
         updateBulbs(0);
 
-        // ─── تصنيف الملفات: صور الخشب للتحميل المتوازي والباقي للتسلسلي ───
-        const woodImages = FILES_TO_LOAD.filter(f => f.includes('wood.webp'));
-        const otherFiles = FILES_TO_LOAD.filter(f => !f.includes('wood.webp'));
+        // ─── تصنيف الملفات: صور بشكل منفصل ───
+        const imageExts = /\.(webp|png|jpg|jpeg|gif|svg|avif)$/i;
+        const imageFiles = FILES_TO_LOAD.filter(f => imageExts.test(f));
+        const otherFiles = FILES_TO_LOAD.filter(f => !imageExts.test(f));
 
-        // ─── تحميل الملفات الأساسية والمكتبات بالتسلسل ───
+        // ─── تحميل الملفات الأخرى بالتسلسل ───
         for (const file of otherFiles) {
             await loadFile(file, cacheName);
             loadedCount++;
@@ -150,17 +155,17 @@ export function initPreload(onComplete) {
             if (fileStatus) fileStatus.textContent = `✔ ${file.split('/').pop()}`;
         }
 
-        // ─── تحميل صور الخشب (Interface) بالتوازي لسرعة العرض ───
-        if (woodImages.length > 0) {
-            if (fileStatus) fileStatus.textContent = `⏳ تحميل عناصر الواجهة...`;
+        // ─── تحميل الصور بالتوازي كلها في نفس الوقت ───
+        if (imageFiles.length > 0) {
+            if (fileStatus) fileStatus.textContent = `⏳ تحميل ${imageFiles.length} صور بالتوازي...`;
             await Promise.all(
-                woodImages.map(async (file) => {
+                imageFiles.map(async (file) => {
                     await loadFile(file, cacheName);
                     loadedCount++;
                     updateProgress();
                 })
             );
-            if (fileStatus) fileStatus.textContent = `✔ اكتمل تحميل الواجهة`;
+            if (fileStatus) fileStatus.textContent = `✔ اكتمل تحميل الصور (${imageFiles.length})`;
         }
 
         if (fileStatus) fileStatus.textContent = '🎉 اكتمل التحميل!';
