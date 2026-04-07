@@ -18,6 +18,16 @@ function updatePreloadVisitorCode() {
     }
 }
 
+// ✅ FIX: جلب Top5 من السيرفر فور فتح الصفحة في كل زيارة
+async function initLiveLeaderboardOnLoad() {
+    const deviceId = getDeviceId();
+    const liveList = document.getElementById('liveLeaderboardList');
+    const liveStatus = document.getElementById('liveLeaderboardStatus');
+    if (liveList) {
+        await loadLiveLeaderboard(liveList, deviceId, liveStatus);
+    }
+}
+
 export function initPreloadSystem() {
     const preloadDone = localStorage.getItem('preload_done');
     const preloadScreen = document.getElementById('preload-screen');
@@ -31,6 +41,9 @@ export function initPreloadSystem() {
         // ✅ نبدأ اللعبة أولاً قبل التحميل
         initializeMiniGame();
 
+        // ✅ FIX: جلب Top5 من السيرفر فور الفتح بدون انتظار نهاية اللعبة
+        initLiveLeaderboardOnLoad();
+
         // ثم نبدأ التحميل بدون callback
         initPreload();
     } else {
@@ -39,13 +52,15 @@ export function initPreloadSystem() {
             preloadScreen.classList.add('hidden');
         }
 
-        // في الزيارات السابقة، نقوم بتحديث القائمة الحية والرقم القياسي بشكل عادي
         const deviceId = getDeviceId();
         const liveList = document.getElementById('liveLeaderboardList');
         const liveStatus = document.getElementById('liveLeaderboardStatus');
+
+        // ✅ FIX: تحديث القائمة الحية في الزيارات السابقة أيضاً فور الفتح
         if (liveList) {
             loadLiveLeaderboard(liveList, deviceId, liveStatus);
         }
+
         refreshPersonalRecordUI('personalRecordValue');
 
         // رفع الرقم القياسي المحلي إلى السحابة عند بدء التشغيل (إذا كان جديداً)
