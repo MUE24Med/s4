@@ -418,3 +418,13 @@ export function updateDynamicSizes() {
     });
     mainSvg.setAttribute('viewBox', `0 0 ${maxX} ${maxY}`);
 }
+
+// ---------- تحميل آخر مجموعة محفوظة ----------
+export function loadSelectedGroup() {
+    const saved = localStorage.getItem('selectedGroup');
+    if (saved && /^[A-D]$/.test(saved)) {
+        setCurrentGroup(saved);
+        return true;
+    }
+    return false;
+}
