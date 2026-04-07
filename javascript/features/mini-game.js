@@ -23,6 +23,12 @@ export function initializeMiniGame() {
     // إذا لم توجد العناصر الأساسية، لا نكمل
     if (!gameContainer || !runner) return;
 
+    // ✅ FIX: ضعف ارتفاع شاشة اللعب مع الحفاظ على معدل السقوط
+    // الارتفاع الأصلي كان يُقاس من CSS - نضاعفه عبر style مباشرة
+    const BASE_GAME_HEIGHT = gameContainer.offsetHeight || 300;
+    const NEW_GAME_HEIGHT = BASE_GAME_HEIGHT * 2;
+    gameContainer.style.height = NEW_GAME_HEIGHT + 'px';
+
     // إعداد المسارات
     const lanes = [20, 50, 80];
 
@@ -31,7 +37,8 @@ export function initializeMiniGame() {
     let hearts = 0;
     let score = 0;
     let gameActive = true;
-    let fallSpeed = 1.5;
+    // ✅ FIX: نضاعف fallSpeed بنفس نسبة الارتفاع (×2) للحفاظ على نفس معدل السقوط الظاهري
+    let fallSpeed = 3.0;
     let activeItems = [];
     let waveCounter = 0;
     let usedLanesInWave = [];
@@ -123,6 +130,7 @@ export function initializeMiniGame() {
             itemData.y += fallSpeed;
             itemData.element.style.top = itemData.y + 'px';
 
+            // ✅ FIX: containerHeight يُقرأ من الارتفاع الجديد المضاعف تلقائياً
             const containerHeight = gameContainer.offsetHeight;
 
             // التصادم مع العداء
@@ -196,7 +204,7 @@ export function initializeMiniGame() {
         }
 
         if (liveLeaderboardList) {
-            renderLeaderboard(liveLeaderboardList, top5, deviceId); // أو loadLiveLeaderboard لتحديث
+            renderLeaderboard(liveLeaderboardList, top5, deviceId);
         }
 
         if (typeof window.trackGameScore === 'function') {
@@ -212,7 +220,8 @@ export function initializeMiniGame() {
         hearts = 0;
         score = 0;
         runnerPosition = 0;
-        fallSpeed = 1.5;
+        // ✅ FIX: إعادة fallSpeed للقيمة المضاعفة عند restart
+        fallSpeed = 3.0;
         waveCounter = 0;
         spawnInterval = 1800;
         gameActive = true;
@@ -238,7 +247,8 @@ export function initializeMiniGame() {
                 waveCounter++;
 
                 if (waveCounter % 3 === 0) {
-                    fallSpeed += 0.15;
+                    // ✅ FIX: زيادة fallSpeed مضاعفة للحفاظ على نفس نسبة التسارع
+                    fallSpeed += 0.30;
                     if (spawnInterval > 800) {
                         spawnInterval -= 100;
                         clearInterval(spawnerIntervalId);
