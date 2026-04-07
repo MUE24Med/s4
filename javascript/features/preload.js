@@ -142,11 +142,30 @@ export function initPreload(onComplete) {
 
         updateBulbs(0);
 
-        for (const file of FILES_TO_LOAD) {
+        // ─── تصنيف الملفات: صور بشكل منفصل ───
+        const imageExts = /\.(webp|png|jpg|jpeg|gif|svg|avif)$/i;
+        const imageFiles = FILES_TO_LOAD.filter(f => imageExts.test(f));
+        const otherFiles = FILES_TO_LOAD.filter(f => !imageExts.test(f));
+
+        // ─── تحميل الملفات الأخرى بالتسلسل ───
+        for (const file of otherFiles) {
             await loadFile(file, cacheName);
             loadedCount++;
             updateProgress();
             if (fileStatus) fileStatus.textContent = `✔ ${file.split('/').pop()}`;
+        }
+
+        // ─── تحميل الصور بالتوازي كلها في نفس الوقت ───
+        if (imageFiles.length > 0) {
+            if (fileStatus) fileStatus.textContent = `⏳ تحميل ${imageFiles.length} صور بالتوازي...`;
+            await Promise.all(
+                imageFiles.map(async (file) => {
+                    await loadFile(file, cacheName);
+                    loadedCount++;
+                    updateProgress();
+                })
+            );
+            if (fileStatus) fileStatus.textContent = `✔ اكتمل تحميل الصور (${imageFiles.length})`;
         }
 
         if (fileStatus) fileStatus.textContent = '🎉 اكتمل التحميل!';
