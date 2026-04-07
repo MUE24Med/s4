@@ -1,124 +1,268 @@
 /* ========================================
-   sw.js - Service Worker محسّن للسرعة
-   استراتيجية stale-while-revalidate + تحميل متوازي
+   sw.js - Service Worker
+   ✅ محسّن: CACHE_NAME من URL param (متزامن مع index.html)
    ======================================== */
 
+// ✅ اقرأ اسم الكاش من URL بدل hardcode — يتطابق تلقائياً مع index.html
 const url = new URL(self.location.href);
-const CACHE_NAME = url.searchParams.get('v') || 'semester-4-cache-v2';
-const CRITICAL_CACHE_NAME = `${CACHE_NAME}-critical`;
+const CACHE_NAME = url.searchParams.get('v') || 'semester-4-cache-v1';
 
-// الموارد الأساسية التي تظهر أول شاشة (يتم تخزينها فوراً)
-const criticalResources = [
+const urlsToCache = [
     './',
     './index.html',
     './style.css',
-    './script.js',
-    './image/0.png'
-];
-
-// باقي الموارد (تحميلها في الخلفية دون انتظار)
-const secondaryResources = [
     './tracker.js',
+    './script.js',
     './manifest.json',
     './javascript/core/config.js',
     './javascript/core/utils.js',
     './javascript/core/navigation.js',
     './javascript/core/group-loader.js',
     './javascript/core/state.js',
-    './javascript/core/back-button.js',
     './javascript/ui/pdf-viewer.js',
     './javascript/ui/wood-interface.js',
     './javascript/ui/search-and-eye.js',
     './javascript/ui/ui-controls.js',
     './javascript/ui/scroll-system.js',
+    './javascript/features/leaderboard-core.js',
+    './javascript/features/mini-game.js',
+    './javascript/features/leaderboard-ui.js',
     './javascript/features/preload-game.js',
     './javascript/features/preload.js',
     './javascript/features/svg-processor.js',
-    './javascript/features/leaderboard-core.js',
-    './javascript/features/leaderboard-ui.js',
-    './javascript/features/mini-game.js',
+    './image/0.webp',
+    './image/0.png',
     './image/wood.webp',
     './image/Upper_wood.webp'
 ];
 
-// ========== INSTALL: تخزين أساسي سريع ==========
+// ============================================================
+// INSTALL — تحميل متوازٍ بدل sequential
+// ============================================================
 self.addEventListener('install', event => {
-    console.log('🔧 SW install (fast mode)');
+    console.log('🔧 SW: تثبيت الإصدار', CACHE_NAME);
     event.waitUntil(
-        caches.open(CRITICAL_CACHE_NAME)
-            .then(cache => cache.addAll(criticalResources))
-            .then(() => {
-                // تحميل باقي الموارد في الخلفية دون إبطاء التثبيت
-                caches.open(CACHE_NAME).then(cache => {
-                    cache.addAll(secondaryResources).catch(console.warn);
-                });
-                return self.skipWaiting();
-            })
+        caches.open(CACHE_NAME).then(cache =>
+            // ✅ كل الملفات بتتحمل في نفس الوقت
+            Promise.all(
+                urlsToCache.map(url =>
+                    fetch(url)
+                        .then(response => {
+                            if (!response || response.status !== 200) {
+                                console.warn(`⚠️ فشل تخزين (${response?.status ?? 'no response'}): ${url}`);
+                                return Promise.resolve();
+                            }
+                            return cache.put(url, response);
+                        })
+                        .catch(err => {
+                            console.warn(`⚠️ فشل تخزين: ${url}`, err.message);
+                            return Promise.resolve();
+                        })
+                )
+            )
+        ).then(() => {
+            console.log('✅ SW: تم التثبيت -', CACHE_NAME);
+            return self.skipWaiting();
+        })
     );
 });
 
-// ========== ACTIVATE: تنظيف الكاش القديم فوراً ==========
+// ============================================================
+// ACTIVATE — حذف الكاش القديم
+// ============================================================
 self.addEventListener('activate', event => {
+    console.log('🚀 SW: تفعيل الإصدار', CACHE_NAME);
     event.waitUntil(
-        caches.keys().then(keys => Promise.all(
-            keys.filter(k => k !== CACHE_NAME && k !== CRITICAL_CACHE_NAME)
-                .map(k => caches.delete(k))
-        )).then(() => self.clients.claim())
+        caches.keys().then(keys =>
+            Promise.all(
+                keys
+                    .filter(key => key !== CACHE_NAME)
+                    .map(key => {
+                        console.log(`🗑️ حذف كاش قديم: ${key}`);
+                        return caches.delete(key);
+                    })
+            )
+        ).then(() => {
+            console.log('✅ SW: تم التفعيل');
+            return self.clients.claim();
+        })
     );
 });
 
-// ========== FETCH: استراتيجيات مختلفة حسب نوع المورد ==========
+// ============================================================
+// FETCH — Cache First
+// ============================================================
 self.addEventListener('fetch', event => {
-    const req = event.request;
-    const url = new URL(req.url);
+    const url = new URL(event.request.url);
 
-    // تجاهل طلبات API و PDF و Formspree
-    if (url.pathname.includes('/api/github') ||
-        url.pathname.includes('.pdf') ||
-        url.pathname.includes('formspree')) {
-        return;
-    }
+    if (event.request.method !== 'GET') return;
+    if (url.pathname.includes('sw.js')) return;
 
-    // للموارد النصية (HTML, CSS, JS) => stale-while-revalidate
-    if (req.destination === 'document' ||
-        req.destination === 'style' ||
-        req.destination === 'script') {
-        event.respondWith(staleWhileRevalidate(req));
-    } else {
-        // للصور والملفات الثابتة => cache first سريع جداً
-        event.respondWith(cacheFirst(req));
-    }
+    const allowedOrigins = [
+        self.location.origin,
+        'raw.githubusercontent.com',
+        'api.github.com',
+        'cdnjs.cloudflare.com',
+        'mozilla.github.io'
+    ];
+    if (!allowedOrigins.some(o => url.origin.includes(o))) return;
+
+    event.respondWith(handleFetch(event.request));
 });
 
-async function staleWhileRevalidate(request) {
-    const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(request);
-    const fetchPromise = fetch(request).then(response => {
-        if (response.ok) cache.put(request, response.clone());
+async function handleFetch(request) {
+    const cached = await caches.match(request);
+
+    if (cached) {
+        // ✅ Background update — بس للـ HTML/CSS/JS مش الصور (توفير bandwidth)
+        if (shouldBackgroundUpdate(request.url)) {
+            updateCacheInBackground(request.clone());
+        }
+        return cached;
+    }
+
+    // مش في الكاش — جيب من الشبكة
+    try {
+        const response = await fetch(request);
+        if (shouldCache(request.url) && response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+                cache.put(request, responseToCache).catch(() => {});
+            });
+        }
         return response;
-    }).catch(() => null);
-    return cached || fetchPromise;
+    } catch (_err) {
+        if (request.destination === 'document') {
+            const fallback = await caches.match('./index.html');
+            return fallback || offlinePage();
+        }
+        return new Response('Offline', { status: 503 });
+    }
 }
 
-async function cacheFirst(request) {
-    const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    const response = await fetch(request);
-    if (response.ok) cache.put(request, response.clone());
-    return response;
+// ✅ Background update — بس للملفات اللي بتتغير (مش الصور والـ PDF)
+function updateCacheInBackground(requestClone) {
+    fetch(requestClone).then(response => {
+        if (response && response.status === 200) {
+            caches.open(CACHE_NAME).then(cache => {
+                cache.put(requestClone.url, response).catch(() => {});
+            });
+        }
+    }).catch(() => {});
 }
 
-// صفحة Offline احتياطية (نفس السابقة)
+// ============================================================
+// shouldCache — ما يُحفظ في الكاش
+// ============================================================
+function shouldCache(url) {
+    try {
+        const pathname = new URL(url).pathname;
+        if (pathname.includes('sw.js')) return false;
+        if (pathname.includes('/javascript/')) return true;
+        if (pathname.includes('/image/')) return true;
+        if (pathname.match(/\.(html|css|js|webp|png|jpg|jpeg|svg|pdf|json|woff2?)$/)) return true;
+        return false;
+    } catch (_) {
+        return false;
+    }
+}
+
+// ✅ Background update بس للملفات النصية — مش الصور والـ PDF (توفير bandwidth)
+function shouldBackgroundUpdate(url) {
+    try {
+        const pathname = new URL(url).pathname;
+        if (pathname.includes('sw.js')) return false;
+        if (pathname.match(/\.(webp|png|jpg|jpeg|pdf|woff2?)$/)) return false; // صور وملفات ثابتة — مش محتاجة update
+        if (pathname.match(/\.(html|css|js|json)$/)) return true;
+        if (pathname.includes('/javascript/')) return true;
+        return false;
+    } catch (_) {
+        return false;
+    }
+}
+
+// ============================================================
+// صفحة Offline الاحتياطية
+// ============================================================
 function offlinePage() {
     return new Response(
         `<!DOCTYPE html>
         <html dir="rtl" lang="ar">
-        <head><meta charset="UTF-8"><title>وضع Offline</title><style>body{font-family:Arial;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;text-align:center}.container{max-width:500px;padding:40px}h1{font-size:48px}button{background:#fff;color:#667eea;border:none;padding:15px 30px;border-radius:8px;cursor:pointer}</style></head>
-        <body><div class="container"><h1>🔌 وضع Offline</h1><p>لا يوجد اتصال بالإنترنت</p><button onclick="location.reload()">🔄 إعادة المحاولة</button></div></body>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>وضع Offline</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    margin: 0;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    text-align: center;
+                }
+                .container { max-width: 500px; padding: 40px; }
+                h1 { font-size: 48px; margin: 0; }
+                p { font-size: 18px; margin: 20px 0; }
+                button {
+                    background: white;
+                    color: #667eea;
+                    border: none;
+                    padding: 15px 30px;
+                    font-size: 16px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    margin-top: 20px;
+                }
+                button:hover { background: #f0f0f0; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🔌 وضع Offline</h1>
+                <p>لا يوجد اتصال بالإنترنت</p>
+                <p>تأكد من اتصالك بالشبكة ثم حاول مرة أخرى</p>
+                <button onclick="location.reload()">🔄 إعادة المحاولة</button>
+            </div>
+        </body>
         </html>`,
-        { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        {
+            status: 503,
+            headers: {
+                'Content-Type': 'text/html; charset=utf-8',
+                'Cache-Control': 'no-cache'
+            }
+        }
     );
 }
 
-console.log(`%c✅ SW v3.0 - Fast Cache: ${CACHE_NAME}`, 'color:#00ff00;font-weight:bold;');
+// ============================================================
+// رسائل من الصفحة الرئيسية
+// ============================================================
+self.addEventListener('message', event => {
+    if (!event.data) return;
+
+    if (event.data.action === 'skipWaiting') {
+        console.log('⏭️ skipWaiting');
+        self.skipWaiting();
+    }
+
+    if (event.data.action === 'clearCache') {
+        console.log('🗑️ مسح الكاش');
+        event.waitUntil(
+            caches.keys()
+                .then(names => Promise.all(names.map(n => caches.delete(n))))
+                .then(() => {
+                    console.log('✅ تم مسح الكاش');
+                    self.clients.matchAll().then(clients =>
+                        clients.forEach(c => c.postMessage({ type: 'CACHE_CLEARED' }))
+                    );
+                })
+        );
+    }
+});
+
+console.log(`%c✅ SW v2.3 - الكاش: ${CACHE_NAME}`, 'color:#00ff00;font-weight:bold;');
