@@ -1,15 +1,20 @@
 // ============================================
-// ui-controls.js - أزرار التحكم والتفاعل
+// ui-controls.js - أزرار التحكم والتفاعل (معدل لدعم اختيار السكشن الإجباري)
 // ============================================
 
 import { NAV_STATE } from '../core/config.js';
 import { goToWood, pushNavigationState, goToMapEnd } from '../core/navigation.js';
+import { setCurrentSection } from '../core/state.js';
 
+// ---------- زر تغيير المجموعة (يعيد ضبط السكشن ويظهر شاشة المجموعات) ----------
 export function setupGroupChangeButton() {
     const changeGroupBtn = document.getElementById('change-group-btn');
     if (changeGroupBtn) {
         changeGroupBtn.addEventListener('click', function (e) {
             e.stopPropagation();
+            // مسح السكشن المخزن
+            setCurrentSection(null);
+            // إظهار شاشة المجموعات
             const groupSelectionScreen = document.getElementById('group-selection-screen');
             if (groupSelectionScreen) {
                 groupSelectionScreen.classList.remove('hidden');
@@ -21,18 +26,23 @@ export function setupGroupChangeButton() {
     }
 }
 
+// ---------- أزرار اختيار المجموعة (تعرض شاشة السكشن إجبارياً) ----------
 export function setupGroupSelectionButtons() {
     document.querySelectorAll('.group-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', async function () {
             const group = this.getAttribute('data-group');
             console.log('👆 تم اختيار المجموعة:', group);
-            import('../core/group-loader.js').then(({ initializeGroup }) => {
-                initializeGroup(group);
-            });
+            // حفظ المجموعة المختارة
+            const { setCurrentGroup } = await import('../core/state.js');
+            setCurrentGroup(group);
+            // عرض شاشة اختيار السكشن
+            const { showSectionSelection } = await import('../core/group-loader.js');
+            await showSectionSelection(group);
         });
     });
 }
 
+// ---------- زر العودة لشاشة التحميل المسبق ----------
 export function setupPreloadButton() {
     const preloadBtn = document.getElementById('preload-btn');
     if (preloadBtn) {
@@ -46,6 +56,7 @@ export function setupPreloadButton() {
     }
 }
 
+// ---------- زر مسح الكاش وإعادة الضبط ----------
 export function setupResetButton() {
     const resetBtn = document.getElementById('reset-btn');
     if (resetBtn) {
@@ -76,6 +87,7 @@ export function setupResetButton() {
     }
 }
 
+// ---------- زر تحريك شريط الأدوات ----------
 export function setupMoveToggleButton() {
     const moveToggle = document.getElementById('move-toggle');
     if (moveToggle) {
@@ -91,6 +103,7 @@ export function setupMoveToggleButton() {
     }
 }
 
+// ---------- أيقونة البحث (تمرير أقصى اليسار) ----------
 export function setupSearchIcon() {
     const searchIcon = document.getElementById('search-icon');
     if (searchIcon) {
@@ -101,6 +114,7 @@ export function setupSearchIcon() {
     }
 }
 
+// ---------- زر الرجوع داخل SVG ----------
 export function setupBackButtonInSVG(getCurrentFolder, setCurrentFolder, updateWoodInterface) {
     const backButtonGroup = document.getElementById('back-button-group');
     if (backButtonGroup) {
@@ -123,6 +137,7 @@ export function setupBackButtonInSVG(getCurrentFolder, setCurrentFolder, updateW
     }
 }
 
+// ---------- تبديل تفعيل التفاعل (Hover) ----------
 export function setupInteractionToggle() {
     const jsToggle = document.getElementById('js-toggle');
     if (jsToggle) {
@@ -138,11 +153,9 @@ export function setupInteractionToggle() {
 // زر تثبيت التطبيق داخل الـ SVG
 // ============================================
 
-// ✅ FIX: متغير لمنع تكرار الإعداد في نفس الجلسة
 let _installButtonInitialized = false;
 
 export function setupInstallButton() {
-    // ✅ FIX: منع التكرار إذا تم الاستدعاء أكثر من مرة
     if (_installButtonInitialized) {
         console.log('ℹ️ setupInstallButton: تم الإعداد مسبقاً، تخطي');
         return;
@@ -153,12 +166,10 @@ export function setupInstallButton() {
     _setupIOSInstallHint();
 }
 
-// ---------- Android / Chrome — زر داخل SVG ----------
 function _setupAndroidInstallButton() {
     const mainSvg = document.getElementById('main-svg');
     if (!mainSvg) return;
 
-    // ✅ FIX: تحقق من الوجود المسبق وأزل القديم بدلاً من التخطي فقط
     const existing = document.getElementById('install-svg-btn');
     if (existing) {
         console.log('♻️ install-svg-btn: إعادة استخدام العنصر الموجود');
@@ -200,13 +211,12 @@ function _setupAndroidInstallButton() {
     console.log('✅ زر التثبيت SVG جاهز');
 }
 
-// ✅ FIX: دالة منفصلة لربط الأحداث — تُستخدم سواء بالعنصر الجديد أو القديم
 function _bindInstallButtonEvents(installGroup) {
     if (window._pwaPrompt) {
         installGroup.style.display = '';
     }
 
-    // ✅ FIX: إزالة المستمعين القديمة قبل إضافة جديدة لتجنب التكرار
+    // استبدال العنصر لتجنب تكرار المستمعات
     const newGroup = installGroup.cloneNode(true);
     installGroup.parentNode?.replaceChild(newGroup, installGroup);
     installGroup = newGroup;
@@ -232,7 +242,6 @@ function _bindInstallButtonEvents(installGroup) {
     });
 }
 
-// ---------- iOS Safari — Banner تعليمي ----------
 function _setupIOSInstallHint() {
     const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const isStandalone = window.navigator.standalone === true;
