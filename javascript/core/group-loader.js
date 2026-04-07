@@ -382,9 +382,21 @@ async function selectSection(sectionNum, groupLetter) {
     await initializeGroup(groupLetter, sectionNum);
 }
 
-// ---------- تهيئة المجموعة (تقبل سكشن اختياري) ----------
+// ---------- تهيئة المجموعة (تقبل سكشن إجباري) ----------
 export async function initializeGroup(groupLetter, sectionNum = null) {
-    console.log(`🚀 تهيئة المجموعة: ${groupLetter}${sectionNum ? `, سكشن ${sectionNum}` : ''}`);
+    // السكشن إجباري: إذا لم يتم تمرير سكشن ولا يوجد في localStorage، نعرض شاشة السكاشن
+    if (!sectionNum) {
+        const savedSection = localStorage.getItem('selectedSection');
+        if (savedSection && !isNaN(parseInt(savedSection))) {
+            sectionNum = parseInt(savedSection);
+        } else {
+            console.log('⚠️ لا يوجد سكشن محدد، سيتم عرض شاشة اختيار السكشن');
+            await showSectionSelection(groupLetter);
+            return;
+        }
+    }
+
+    console.log(`🚀 تهيئة المجموعة: ${groupLetter}, سكشن ${sectionNum}`);
 
     const previousGroup = localStorage.getItem('selectedGroup');
     if (previousGroup && previousGroup !== groupLetter) {
@@ -399,8 +411,7 @@ export async function initializeGroup(groupLetter, sectionNum = null) {
     }
 
     saveSelectedGroup(groupLetter);
-    if (sectionNum) setCurrentSection(sectionNum);
-    else setCurrentSection(null);
+    setCurrentSection(sectionNum);
 
     const toggleContainer = document.getElementById('js-toggle-container');
     const scrollContainer = document.getElementById('scroll-container');
@@ -421,9 +432,7 @@ export async function initializeGroup(groupLetter, sectionNum = null) {
     showLoadingScreen(groupLetter);
     await Promise.all([fetchGlobalTree(), loadGroupSVG(groupLetter)]);
 
-    if (sectionNum) {
-        await loadSectionSVG(groupLetter, sectionNum);
-    }
+    await loadSectionSVG(groupLetter, sectionNum);
 
     updateDynamicSizes();
     await loadImages();
