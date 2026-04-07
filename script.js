@@ -132,3 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export { scan };
+
+// داخل state.js
+export let currentGroup = 'A';
+export let currentSection = null; // رقم السكشن أو null إذا لم يتم اختياره
+
+export function setCurrentGroup(group) {
+  currentGroup = group;
+}
+
+export function setCurrentSection(section) {
+  currentSection = section;
+}
