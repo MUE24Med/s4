@@ -4,7 +4,7 @@
 
 import { NAV_STATE } from './config.js';
 import { resetBrowserZoom } from './utils.js';
-import { currentFolder } from './state.js';
+import { currentFolder, currentSection, setCurrentSection } from './state.js';
 
 export let navigationHistory = [];
 
@@ -47,7 +47,6 @@ export function handleBackNavigation(e) {
         const pdfViewer = document.getElementById("pdfFrame");
 
         if (currentState.data.isPreview) {
-            // استدعاء ديناميكي لتجنب الاستيراد الدائري
             import('../ui/pdf-viewer.js').then(({ closePDFPreview }) => {
                 closePDFPreview();
             });
@@ -84,6 +83,33 @@ export function handleBackNavigation(e) {
     }
 
     if (currentState.state === NAV_STATE.WOOD_VIEW) {
+        // إذا كان هناك سكشن مفتوح (وليس مجلد عادي) نغلق السكشن أولاً
+        if (currentSection && currentSection !== null) {
+            console.log('📂 العودة من سكشن إلى شاشة اختيار السكشن');
+            setCurrentSection(null);
+            // حذف العناصر الخاصة بالسكشن من DOM
+            const groupContainer = document.getElementById('group-specific-content');
+            if (groupContainer) {
+                const sectionElements = groupContainer.querySelectorAll('.section-specific');
+                sectionElements.forEach(el => el.remove());
+            }
+            // إعادة معالجة SVG وتحديث الواجهة
+            import('../features/svg-processor.js').then(({ scan }) => {
+                scan();
+            });
+            import('../ui/wood-interface.js').then(({ updateWoodInterface }) => {
+                updateWoodInterface();
+            });
+            // إظهار شاشة اختيار السكشن مرة أخرى
+            const groupLetter = localStorage.getItem('selectedGroup') || currentState.data.group;
+            if (groupLetter) {
+                import('./group-loader.js').then(({ showSectionSelection }) => {
+                    showSectionSelection(groupLetter);
+                });
+            }
+            return;
+        }
+
         if (currentFolder && currentFolder !== "") {
             console.log('📂 العودة من مجلد إلى المجلد الأب');
             const parts = currentFolder.split('/');
