@@ -6,12 +6,13 @@ import { initPreloadSystem } from './javascript/features/preload-game.js';
 import { setupBackButton } from './javascript/core/back-button.js';
 import { preventInteractionWhenHidden, initWoodUI, updateWelcomeMessages } from './javascript/ui/wood-interface.js';
 import { initPDFViewer } from './javascript/ui/pdf-viewer.js';
-import { initializeGroup, loadSelectedGroup } from './javascript/core/group-loader.js';
+import { initializeGroup, loadSelectedGroup, showSectionSelection } from './javascript/core/group-loader.js';
 import { scan } from './javascript/features/svg-processor.js';
 import { resetBrowserZoom } from './javascript/core/utils.js';
 import { setupInstallButton } from './javascript/ui/ui-controls.js';
+import { setCurrentSection } from './javascript/core/state.js';
 
-// ---------- تحميل آخر جروب تلقائياً ----------
+// ---------- تحميل آخر جروب تلقائياً (مع دعم السكشن) ----------
 function autoLoadLastGroup() {
     const preloadDone = localStorage.getItem('preload_done');
 
@@ -21,14 +22,16 @@ function autoLoadLastGroup() {
     }
 
     const savedGroup = localStorage.getItem('selectedGroup');
+    const savedSection = localStorage.getItem('selectedSection');
 
     if (savedGroup && /^[A-D]$/.test(savedGroup)) {
-        console.log(`🚀 تحميل آخر جروب تلقائياً: ${savedGroup}`);
-        const groupSelectionScreen = document.getElementById('group-selection-screen');
-        if (groupSelectionScreen) {
-            groupSelectionScreen.style.display = 'none';
+        if (savedSection && !isNaN(parseInt(savedSection))) {
+            console.log(`🚀 تحميل آخر جروب وسكشن تلقائياً: ${savedGroup}, سكشن ${savedSection}`);
+            initializeGroup(savedGroup, parseInt(savedSection));
+        } else {
+            console.log(`📋 عرض شاشة اختيار السكشن للمجموعة ${savedGroup}`);
+            showSectionSelection(savedGroup);
         }
-        initializeGroup(savedGroup);
     } else {
         console.log('📋 لا يوجد جروب محفوظ - عرض شاشة الاختيار');
     }
@@ -132,15 +135,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export { scan };
-
-// داخل state.js
-export let currentGroup = 'A';
-export let currentSection = null; // رقم السكشن أو null إذا لم يتم اختياره
-
-export function setCurrentGroup(group) {
-  currentGroup = group;
-}
-
-export function setCurrentSection(section) {
-  currentSection = section;
-}
