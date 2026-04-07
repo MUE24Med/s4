@@ -1,86 +1,108 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 
+<!-- الاسبوع الأول -->
 <g transform="translate(1024,0)">
     <image data-src="image/B/01.webp" width="1024" height="2454" />
-    <g transform="translate(140,0)"></g>
+    <!-- Saturday 01 السبت -->
+    <g transform="translate(140,0)" />
+    <!-- Sunday 01 الأحد -->
     <g transform="translate(253,0)">
         <rect x="0" y="0846" height="452" class="m w" data-href="1"/>
     </g>
+    <!-- Monday 01 الإثنين -->
     <g transform="translate(368,0)">
         <rect x="0" y="0412" height="433" class="m w" data-href="2"/>
         <rect x="0" y="1298" height="381" class="m w" data-href="3"/>
         <rect x="0" y="1683" height="430" class="m w" data-href="4"/>
     </g>
+    <!-- Tuesday 01 الثلاثاء -->
     <g transform="translate(484,0)">
         <rect x="0" y="0412" height="432" class="m w" data-href="5"/>
         <rect x="0" y="0845" height="452" class="m w" data-href="6"/>
     </g>
+    <!-- Wednesday 01 الأربع -->
     <g transform="translate(598,0)">
         <rect x="0" y="0412" height="431" class="m w" data-href="7"/>
         <rect x="0" y="1298" height="382" class="m w" data-href="8"/>
     </g>
+    <!-- Thursday 01 الخميس -->
     <g transform="translate(713,0)">
         <rect x="0" y="0413" height="430" class="m w" data-href="9"/>
         <rect x="0" y="1300" height="382" class="m w" data-href="10"/>
     </g>
 </g>
 
+<!-- الاسبوع الثاني -->
 <g transform="translate(2048,0)">
     <image data-src="image/B/02.webp" width="1024" height="2454" />
-    <g transform="translate(140,0)"></g>
+    <!-- Saturday 02 السبت -->
+    <g transform="translate(140,0)" />
+    <!-- Sunday 02 الأحد -->
     <g transform="translate(253,0)">
         <rect x="0" y="0841" height="461" class="m w" data-href="1"/>
     </g>
+    <!-- Monday 02 الإثنين -->
     <g transform="translate(368,0)">
         <rect x="0" y="0422" height="417" class="m w" data-href="2"/>
         <rect x="0" y="1303" height="391" class="m w" data-href="3"/>
         <rect x="0" y="1696" height="419" class="m w" data-href="4"/>
     </g>
+    <!-- Tuesday 02 الثلاثاء -->
     <g transform="translate(484,0)">
         <rect x="0" y="0422" height="418" class="m w" data-href="5"/>
         <rect x="0" y="0840" height="463" class="m w" data-href="6"/>
     </g>
+    <!-- Wednesday 02 الأربع -->
     <g transform="translate(598,0)">
         <rect x="0" y="0841" height="462" class="m w" data-href="7"/>
     </g>
-    <g transform="translate(713,0)"></g>
+    <!-- Thursday 02 الخميس -->
+    <g transform="translate(713,0)" />
 </g>
 
+<!-- الاسبوع الثالث -->
 <g transform="translate(3072,0)">
     <image data-src="image/B/03.webp" width="1024" height="2454" />
+    <!-- Wednesday 03 الأربع -->
     <g transform="translate(598,0)">
         <rect x="0" y="0512" height="699" class="m w" data-href="3"/>
         <rect x="0" y="1211" height="704" class="m w" data-href="4"/>
     </g>
+    <!-- Thursday 03 الخميس -->
     <g transform="translate(713,0)">
         <rect x="0" y="0512" height="699" class="m w" data-href="5"/>
         <rect x="0" y="1211" height="704" class="m w" data-href="6"/>
     </g>
 </g>
 
+<!-- الاسبوع الرابع -->
 <g transform="translate(4096,0)">
     <image data-src="image/B/04.webp" width="1024" height="2454" />
 </g>
 
+<!-- الاسبوع الخامس -->
 <g transform="translate(5120,0)">
     <image data-src="image/B/055.webp" width="1024" height="2454" />
 
+    <!-- Sunday 05 الأحد -->
     <g transform="translate(253,0)">
         <rect x="0" y="321"  height="438" class="m w" data-href="GIT/Practical/Anatomy-01.pdf"/>
         <rect x="0" y="1260" height="534" class="m w" data-href="GIT/Practical/Histology-01.pdf"/>
         <rect x="0" y="1795" height="406" class="m w" data-href="ipc"/>
     </g>
 
+    <!-- Monday 05 الإثنين -->
     <g transform="translate(368,0)">
         <rect x="0" y="1249" height="544" class="m w s" data-href="GIT/Practical/Physiology-01.pdf"/>
         <rect x="0" y="2222" height="79"  class="m w" data-href="9"/>
     </g>
 
+    <!-- Tuesday 05 الثلاثاء -->
     <g transform="translate(484,0)">
         <rect x="0" y="758" height="503" class="m w" data-href="10"/>
     </g>
 
+    <!-- Thursday 05 الخميس -->
     <g transform="translate(713,0)">
         <rect x="0" y="321" height="437" class="m w" data-href="14"/>
     </g>
