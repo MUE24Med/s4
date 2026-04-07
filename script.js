@@ -10,12 +10,11 @@ import { initializeGroup, loadSelectedGroup, showSectionSelection } from './java
 import { scan } from './javascript/features/svg-processor.js';
 import { resetBrowserZoom } from './javascript/core/utils.js';
 import { setupInstallButton } from './javascript/ui/ui-controls.js';
-import { setCurrentSection } from './javascript/core/state.js';
+import { setCurrentGroup, setCurrentSection } from './javascript/core/state.js';
 
 // ---------- تحميل آخر جروب وسكشن تلقائياً ----------
 function autoLoadLastGroup() {
     const preloadDone = localStorage.getItem('preload_done');
-
     if (!preloadDone) {
         console.log('⏭️ أول زيارة - تخطي التحميل التلقائي');
         return;
@@ -29,18 +28,37 @@ function autoLoadLastGroup() {
             console.log(`🚀 تحميل آخر جروب وسكشن تلقائياً: ${savedGroup}, سكشن ${savedSection}`);
             initializeGroup(savedGroup, parseInt(savedSection));
         } else {
-            console.log(`📋 عرض شاشة اختيار السكشن للمجموعة ${savedGroup}`);
+            console.log(`📋 لا يوجد سكشن محفوظ - عرض شاشة اختيار السكشن للمجموعة ${savedGroup}`);
             showSectionSelection(savedGroup);
         }
     } else {
         console.log('📋 لا يوجد جروب محفوظ - عرض شاشة الاختيار');
+        // لا حاجة لشيء، شاشة المجموعات ظاهرة بالفعل
     }
 }
 
-// ---------- مراقب تغيير Z-Index (إعادة تعيين التكبير) ----------
+// ---------- إعداد أزرار المجموعات (لجعل اختيار السكشن إجبارياً) ----------
+function setupGroupButtons() {
+    const groupBtns = document.querySelectorAll('.group-btn');
+    groupBtns.forEach(btn => {
+        btn.removeEventListener('click', handleGroupClick);
+        btn.addEventListener('click', handleGroupClick);
+    });
+}
+
+async function handleGroupClick(e) {
+    const group = e.currentTarget.dataset.group;
+    if (!group) return;
+    console.log(`🔘 تم اختيار المجموعة: ${group}`);
+    // حفظ المجموعة المختارة
+    setCurrentGroup(group);
+    // إظهار شاشة اختيار السكشن إجبارياً
+    await showSectionSelection(group);
+}
+
+// ---------- مراقب تغيير Z-Index ----------
 function observeZIndexChanges() {
     let zoomTimeout;
-
     const shouldTriggerReset = (el) => {
         if (!el || !el.style) return false;
         const style = window.getComputedStyle(el);
@@ -52,31 +70,23 @@ function observeZIndexChanges() {
             style.opacity !== '0'
         );
     };
-
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
             const target = mutation.target;
-
             if (mutation.type === 'attributes') {
-                if (
-                    (mutation.attributeName === 'style' || mutation.attributeName === 'class') &&
-                    shouldTriggerReset(target)
-                ) {
+                if ((mutation.attributeName === 'style' || mutation.attributeName === 'class') && shouldTriggerReset(target)) {
                     clearTimeout(zoomTimeout);
                     zoomTimeout = setTimeout(() => {
-                        console.log('🧠 تغيير z-index / ظهور شاشة → Reset Zoom');
                         resetBrowserZoom();
                     }, 80);
                     break;
                 }
             }
-
             if (mutation.type === 'childList') {
                 for (const node of mutation.addedNodes) {
                     if (node.nodeType === 1 && shouldTriggerReset(node)) {
                         clearTimeout(zoomTimeout);
                         zoomTimeout = setTimeout(() => {
-                            console.log('🧠 إضافة شاشة جديدة → Reset Zoom');
                             resetBrowserZoom();
                         }, 80);
                         break;
@@ -85,35 +95,25 @@ function observeZIndexChanges() {
             }
         }
     });
-
     observer.observe(document.body, {
         attributes: true,
         attributeFilter: ['style', 'class'],
         childList: true,
         subtree: true
     });
-
-    console.log('✅ مراقبة z-index وظهور/اختفاء الشاشات مفعّلة');
 }
 
-// ---------- منع قائمة السياق على العناصر البصرية ----------
 function preventContextMenu() {
     document.addEventListener('contextmenu', (e) => {
         const target = e.target;
-        if (
-            target.tagName === 'image' ||
-            target.tagName === 'IMG' ||
-            target.tagName === 'svg' ||
-            target.tagName === 'rect' ||
-            target.closest('svg')
-        ) {
+        if (target.tagName === 'image' || target.tagName === 'IMG' || target.tagName === 'svg' || target.tagName === 'rect' || target.closest('svg')) {
             e.preventDefault();
             return false;
         }
     });
 }
 
-// ---------- التهيئة عند تحميل DOM ----------
+// ---------- التهيئة ----------
 document.addEventListener('DOMContentLoaded', () => {
     const preloadDone = localStorage.getItem('preload_done');
 
@@ -129,9 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
         observeZIndexChanges();
         updateWelcomeMessages();
         preventContextMenu();
+        setupGroupButtons(); // ربط أزرار المجموعات
     }
 
-    console.log('✅ script.js تم تحميله بالكامل - جميع الوحدات جاهزة');
+    console.log('✅ script.js تم تحميله بالكامل');
 });
 
 export { scan };
