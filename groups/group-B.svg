@@ -102,7 +102,6 @@
     <!-- Monday 05 الإثنين -->
     <g transform="translate(368,0)">
         <rect x="0" y="322" height="328" class="m w l" data-href="GIT/Lecture/Histology-01.pdf"/>
-        <rect x="0" y="1249" height="544" class="m w s" data-href="GIT/Practical/Physiology-01.pdf"/>
         <rect x="0" y="1794" height="406" class="m w l" data-href="GIT/Lecture/Anatomy-01.pdf"/>
         <rect x="0" y="2222" height="79"  class="m w" data-href="9"/>
     </g>
