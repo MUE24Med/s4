@@ -12,7 +12,7 @@ import { resetBrowserZoom } from './javascript/core/utils.js';
 import { setupInstallButton } from './javascript/ui/ui-controls.js';
 import { setCurrentSection } from './javascript/core/state.js';
 
-// ---------- تحميل آخر جروب تلقائياً (مع دعم السكشن) ----------
+// ---------- تحميل آخر جروب وسكشن تلقائياً ----------
 function autoLoadLastGroup() {
     const preloadDone = localStorage.getItem('preload_done');
 
