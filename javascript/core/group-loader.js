@@ -270,7 +270,6 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             const children = fragment.children;
             while (children.length) {
                 const child = children[0];
-                // نضيف كلاس section-specific لتسهيل الإزالة لاحقاً
                 if (child.tagName === 'g') {
                     child.classList.add('section-specific');
                 } else if (child.tagName === 'rect') {
@@ -330,7 +329,7 @@ export function updateWoodLogo(groupLetter) {
     dynamicGroup.appendChild(banner);
 }
 
-// ---------- عرض شاشة اختيار السكشن ----------
+// ---------- عرض شاشة اختيار السكشن (إجباري) ----------
 export async function showSectionSelection(groupLetter) {
     const groupSelectionScreen = document.getElementById('group-selection-screen');
     const sectionScreen = document.getElementById('section-selection-screen');
@@ -366,10 +365,11 @@ export async function showSectionSelection(groupLetter) {
     const backBtn = document.getElementById('back-to-groups-from-section');
     if (backBtn) {
         backBtn.onclick = () => {
+            // العودة لاختيار المجموعة (مسح السكشن)
+            setCurrentSection(null);
             sectionScreen.classList.add('hidden');
             groupSelectionScreen.classList.remove('hidden');
             groupSelectionScreen.style.display = 'flex';
-            setCurrentSection(null);
         };
     }
 }
