@@ -155,7 +155,7 @@ export function initPreload(onComplete) {
 
         // ─── تحميل الصور بالتوازي كلها في نفس الوقت ───
         if (imageFiles.length > 0) {
-            if (fileStatus) fileStatus.textContent = `⏳ تحميل ${imageFiles.length} صور بالتوازي...`;
+            if (fileStatus) fileStatus.textContent = `⏳ تحميل ${imageFiles.length} صورة الخلفية...`;
             await Promise.all(
                 imageFiles.map(async (file) => {
                     await loadFile(file, cacheName);
