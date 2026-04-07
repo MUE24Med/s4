@@ -30,8 +30,6 @@ const urlsToCache = [
     './javascript/features/preload-game.js',
     './javascript/features/preload.js',
     './javascript/features/svg-processor.js',
-    './image/0.webp',
-    './image/0.png',
     './image/wood.webp',
     './image/Upper_wood.webp'
 ];
