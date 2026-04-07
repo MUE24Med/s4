@@ -5,7 +5,7 @@
    ============================================================ */
 (function () {
   // ✅ المصدر الوحيد للحقيقة — غيّر هذا السطر فقط عند كل تحديث
-  const SW_CACHE_NAME = 'semester-4-cache-2026-04-07-0308';
+  const SW_CACHE_NAME = 'semester-4-cache-2026-04-07-0314';
 
   // احفظه في localStorage عشان config.js يقدر يقرأه
   localStorage.setItem('sw_cache_name', SW_CACHE_NAME);
