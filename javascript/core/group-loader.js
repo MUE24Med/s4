@@ -222,6 +222,21 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             }
             const allRects = groupContainer.querySelectorAll('rect.m');
             console.log(`✅ إجمالي rect.m بعد إضافة السكشن: ${allRects.length}`);
+            // تشخيص: أول مستطيل من السكشن
+            const sectionRects = groupContainer.querySelectorAll('.section-specific rect.m');
+            if (sectionRects.length > 0) {
+                const r = sectionRects[0];
+                console.log('🔎 أول rect من السكشن:', {
+                    class: r.className,
+                    visibility: r.style.visibility,
+                    display: r.style.display,
+                    processed: r.getAttribute('data-processed'),
+                    width: r.getAttribute('width'),
+                    height: r.getAttribute('height'),
+                    x: r.getAttribute('x'),
+                    y: r.getAttribute('y'),
+                });
+            }
             const newImages = groupContainer.querySelectorAll('image[data-src]');
             newImages.forEach(img => {
                 const src = img.getAttribute('data-src');
