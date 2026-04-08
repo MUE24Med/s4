@@ -192,7 +192,6 @@ async function loadSectionSVG(groupLetter, sectionNum) {
     const groupContainer = document.getElementById('group-specific-content');
     if (!groupContainer) return;
     const sectionSvgPath = `sections/group-${groupLetter}/section-${sectionNum}.svg`;
-    console.log('📂 محاولة تحميل السكشن:', sectionSvgPath);
     try {
         const cache = await caches.open(CACHE_NAME);
         let response = await cache.match(sectionSvgPath);
@@ -200,42 +199,21 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             response = await fetch(sectionSvgPath);
             if (response.ok) cache.put(sectionSvgPath, response.clone());
         }
-        console.log('📊 Response status:', response.status, '| ok:', response.ok);
         if (!response.ok) {
             console.warn(`⚠️ SVG السكشن ${sectionNum} غير موجود`);
             return;
         }
         const svgText = await response.text();
-        console.log('📝 SVG text length:', svgText.length);
         const match = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
-        console.log('🔍 Match result:', !!match);
         if (match && match[1]) {
             const fragment = document.createRange().createContextualFragment(match[1]);
             const children = fragment.children;
-            console.log('🧩 عدد العناصر في السكشن:', children.length);
             while (children.length) {
                 const child = children[0];
                 if (child.tagName === 'g' || child.tagName === 'rect') {
                     child.classList.add('section-specific');
                 }
                 groupContainer.appendChild(child);
-            }
-            const allRects = groupContainer.querySelectorAll('rect.m');
-            console.log(`✅ إجمالي rect.m بعد إضافة السكشن: ${allRects.length}`);
-            // تشخيص: أول مستطيل من السكشن
-            const sectionRects = groupContainer.querySelectorAll('.section-specific rect.m');
-            if (sectionRects.length > 0) {
-                const r = sectionRects[0];
-                console.log('🔎 أول rect من السكشن:', {
-                    class: r.className,
-                    visibility: r.style.visibility,
-                    display: r.style.display,
-                    processed: r.getAttribute('data-processed'),
-                    width: r.getAttribute('width'),
-                    height: r.getAttribute('height'),
-                    x: r.getAttribute('x'),
-                    y: r.getAttribute('y'),
-                });
             }
             const newImages = groupContainer.querySelectorAll('image[data-src]');
             newImages.forEach(img => {
@@ -424,6 +402,8 @@ export function updateDynamicSizes() {
     if (allImages.length === 0) return;
     let maxX = 0;
     let maxY = 2454;
+
+    // حساب الـ viewBox من الصور
     allImages.forEach(img => {
         const g = img.closest('g[transform]');
         let translateX = 0;
@@ -438,6 +418,24 @@ export function updateDynamicSizes() {
         if (totalX > maxX) maxX = totalX;
         if (imgHeight > maxY) maxY = imgHeight;
     });
+
+    // حساب الـ viewBox من الـ rects (السكاشن التي ليس لها صور)
+    mainSvg.querySelectorAll('rect.m').forEach(r => {
+        let totalTranslateX = 0;
+        let el = r.parentElement;
+        while (el && el !== mainSvg) {
+            if (el.hasAttribute('transform')) {
+                const m = el.getAttribute('transform').match(/translate\s*\(([\d.-]+)(?:[ ,]+([\d.-]+))?\s*\)/);
+                if (m) totalTranslateX += parseFloat(m[1]) || 0;
+            }
+            el = el.parentElement;
+        }
+        const rWidth = parseFloat(r.getAttribute('width')) || 113.5;
+        const rX = parseFloat(r.getAttribute('x')) || 0;
+        const totalX = totalTranslateX + rX + rWidth;
+        if (totalX > maxX) maxX = totalX;
+    });
+
     mainSvg.setAttribute('viewBox', `0 0 ${maxX} ${maxY}`);
 }
 
