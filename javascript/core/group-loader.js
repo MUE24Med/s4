@@ -192,7 +192,7 @@ async function loadSectionSVG(groupLetter, sectionNum) {
     const groupContainer = document.getElementById('group-specific-content');
     if (!groupContainer) return;
     const sectionSvgPath = `sections/group-${groupLetter}/section-${sectionNum}.svg`;
-    console.log('📂 محاولة تحميل:', sectionSvgPath);
+    console.log('📂 محاولة تحميل السكشن:', sectionSvgPath);
     try {
         const cache = await caches.open(CACHE_NAME);
         let response = await cache.match(sectionSvgPath);
@@ -200,7 +200,7 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             response = await fetch(sectionSvgPath);
             if (response.ok) cache.put(sectionSvgPath, response.clone());
         }
-        console.log('📊 Response status:', response.status, response.ok);
+        console.log('📊 Response status:', response.status, '| ok:', response.ok);
         if (!response.ok) {
             console.warn(`⚠️ SVG السكشن ${sectionNum} غير موجود`);
             return;
@@ -212,6 +212,7 @@ async function loadSectionSVG(groupLetter, sectionNum) {
         if (match && match[1]) {
             const fragment = document.createRange().createContextualFragment(match[1]);
             const children = fragment.children;
+            console.log('🧩 عدد العناصر في السكشن:', children.length);
             while (children.length) {
                 const child = children[0];
                 if (child.tagName === 'g' || child.tagName === 'rect') {
@@ -219,6 +220,8 @@ async function loadSectionSVG(groupLetter, sectionNum) {
                 }
                 groupContainer.appendChild(child);
             }
+            const allRects = groupContainer.querySelectorAll('rect.m');
+            console.log(`✅ إجمالي rect.m بعد إضافة السكشن: ${allRects.length}`);
             const newImages = groupContainer.querySelectorAll('image[data-src]');
             newImages.forEach(img => {
                 const src = img.getAttribute('data-src');
