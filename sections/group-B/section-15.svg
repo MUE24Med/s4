@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 
-<text x="5" y="5" fill="#ffca28" font-size="36" font-weight="bold" font-family="Arial, sans-serif" style="text-shadow: 2px 2px 6px black; pointer-events: none;">Group B - Section 5</text>
-
 <!-- الاسبوع الخامس -->
 <g transform="translate(5120,0)">
-
   <image data-src="image/B/05.webp" width="1024" height="2454" />
 
-    <!-- Monday 05 الإثنين -->
-    <g transform="translate(368,0)">
-        <rect x="0" y="1249" height="544" class="m w s" data-href="GIT/Practical/Physiology-01.pdf"/>
+  <!-- Monday 05 الإثنين -->
+  <g transform="translate(368,0)">
+    <rect x="0" y="1249" height="544" class="m w s" data-href="GIT/Practical/Physiology-01.pdf"/>
   </g>
 </g>
+
+<!-- ✅ النص في النهاية ليظهر فوق الصور والمستطيلات -->
+<text x="30" y="80" fill="#ffca28" font-size="40" font-weight="bold" font-family="Arial, sans-serif" style="text-shadow: 2px 2px 6px black; pointer-events: none;">Group B - Section 5</text>
 
 </svg>
