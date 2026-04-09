@@ -191,36 +191,59 @@ export async function loadGroupSVG(groupLetter) {
 async function loadSectionSVG(groupLetter, sectionNum) {
     const groupContainer = document.getElementById('group-specific-content');
     if (!groupContainer) return;
+
     const sectionSvgPath = `sections/group-${groupLetter}/section-${sectionNum}.svg`;
+
     try {
         const cache = await caches.open(CACHE_NAME);
         let response = await cache.match(sectionSvgPath);
+
         if (!response) {
             response = await fetch(sectionSvgPath);
             if (response.ok) cache.put(sectionSvgPath, response.clone());
         }
+
         if (!response.ok) {
             console.warn(`⚠️ SVG السكشن ${sectionNum} غير موجود`);
             return;
         }
+
         const svgText = await response.text();
         const match = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+
         if (match && match[1]) {
             const fragment = document.createRange().createContextualFragment(match[1]);
             const children = fragment.children;
+
             while (children.length) {
                 const child = children[0];
+
+                // تمييز عناصر السكشن
                 if (child.tagName === 'g' || child.tagName === 'rect') {
                     child.classList.add('section-specific');
+
+                    // Debug: لو rect بدون لون
+                    if (child.tagName === 'rect' && !child.getAttribute('fill')) {
+                        child.setAttribute('fill', 'rgba(255,0,0,0.2)');
+                    }
                 }
-                groupContainer.appendChild(child);
+
+                // 🔥 مهم: نحطه في الأول مش الآخر
+                groupContainer.insertBefore(child, groupContainer.firstChild);
             }
+
+            // تجميع الصور الجديدة
             const newImages = groupContainer.querySelectorAll('image[data-src]');
             newImages.forEach(img => {
                 const src = img.getAttribute('data-src');
-                if (src && !imageUrlsToLoad.includes(src)) imageUrlsToLoad.push(src);
+                if (src && !imageUrlsToLoad.includes(src)) {
+                    imageUrlsToLoad.push(src);
+                }
             });
+
+            console.log(`✅ تم تحميل السكشن ${sectionNum}`);
         }
+
     } catch (err) {
         console.error(`❌ خطأ في تحميل SVG السكشن:`, err);
     }
