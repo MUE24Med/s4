@@ -251,6 +251,28 @@ async function loadSectionSVG(groupLetter, sectionNum) {
 
         console.log(`✅ تم إضافة ${addedCount} عنصراً من السكشن ${sectionNum} إلى بداية الحاوية`);
 
+// إضافة النص فوق Upper_wood.webp
+const upperLayer = document.querySelector('#upper-wood-layer');
+if (upperLayer) {
+    // إزالة أي نص قديم لمنع التكرار
+    const oldText = upperLayer.querySelector('.section-name-text');
+    if (oldText) oldText.remove();
+    
+    const textElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    textElem.setAttribute("class", "section-name-text");
+    textElem.setAttribute("x", "30");
+    textElem.setAttribute("y", "80");
+    textElem.setAttribute("fill", "#ffca28");
+    textElem.setAttribute("font-size", "40");
+    textElem.setAttribute("font-weight", "bold");
+    textElem.setAttribute("font-family", "Arial, sans-serif");
+    textElem.style.textShadow = "2px 2px 6px black";
+    textElem.style.pointerEvents = "none";
+    textElem.textContent = `Group ${groupLetter} - Section ${sectionNum}`;
+    upperLayer.appendChild(textElem);
+    console.log(`🏷️ تم إضافة النص: Group ${groupLetter} - Section ${sectionNum}`);
+}
+
         // جمع الصور الجديدة التي قد تكون داخل السكشن
         const newImages = groupContainer.querySelectorAll('image[data-src]');
         newImages.forEach(img => {
