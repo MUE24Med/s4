@@ -339,17 +339,8 @@ export async function initializeGroup(groupLetter, sectionNum) {
         console.error('❌ initializeGroup requires a section number');
         return;
     }
-    console.log(`🚀 تهيئة المجموعة: ${groupLetter}, سكشن ${sectionNum}`);
 
-    const previousGroup = localStorage.getItem('selectedGroup');
-    if (previousGroup && previousGroup !== groupLetter) {
-        const cacheNames = await caches.keys();
-        for (const name of cacheNames) {
-            if (name.includes(`group-${previousGroup}`)) {
-                await caches.delete(name);
-            }
-        }
-    }
+    console.log(`🚀 تهيئة المجموعة: ${groupLetter}, سكشن ${sectionNum}`);
 
     saveSelectedGroup(groupLetter);
     setCurrentSection(sectionNum);
@@ -362,7 +353,9 @@ export async function initializeGroup(groupLetter, sectionNum) {
         toggleContainer.classList.remove('fully-hidden');
         toggleContainer.style.display = 'flex';
     }
+
     if (scrollContainer) scrollContainer.style.display = 'block';
+
     if (groupSelectionScreen) {
         groupSelectionScreen.classList.add('hidden');
         groupSelectionScreen.style.display = 'none';
@@ -371,11 +364,23 @@ export async function initializeGroup(groupLetter, sectionNum) {
     pushNavigationState(NAV_STATE.WOOD_VIEW, { group: groupLetter });
 
     showLoadingScreen(groupLetter);
-    await Promise.all([fetchGlobalTree(), loadGroupSVG(groupLetter)]);
+
+    // تحميل الجروب
+    await Promise.all([
+        fetchGlobalTree(),
+        loadGroupSVG(groupLetter)
+    ]);
+
+    // تحميل السكشن
     await loadSectionSVG(groupLetter, sectionNum);
 
-    updateDynamicSizes();
+    // 🔥 مهم: تحميل الصور بعد السكشن
     await loadImages();
+
+    // 🔥 تحديث المقاسات بعد كل حاجة
+    updateDynamicSizes();
+
+    console.log('✅ تم تحميل الجروب + السكشن بالكامل');
 }
 
 export async function loadImages() {
