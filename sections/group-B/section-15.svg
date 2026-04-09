@@ -3,6 +3,8 @@
 <!-- الاسبوع الخامس -->
 <g transform="translate(5120,0)">
 
+  <image data-src="image/B/055.webp" width="1024" height="2454" />
+
     <!-- Monday 05 الإثنين -->
     <g transform="translate(368,0)">
         <rect x="0" y="1249" height="544" class="m w s" data-href="GIT/Practical/Physiology-01.pdf"/>
