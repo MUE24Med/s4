@@ -34,8 +34,6 @@ const FILES_TO_LOAD = [
     './javascript/features/mini-game.js',
 
     // ───── صور ثابتة ─────
-    './image/0.webp',
-    './image/0.png',
     './image/wood.webp',
     './image/Upper_wood.webp',
 
