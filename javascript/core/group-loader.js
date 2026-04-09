@@ -252,6 +252,18 @@ async function loadSectionSVG(groupLetter, sectionNum) {
     }
 }
 
+console.log(`🔍 محاولة تحميل السكشن ${sectionNum} من ${sectionSvgPath}`);
+const response = await fetch(sectionSvgPath);
+console.log(`📡 حالة الاستجابة: ${response.status}`);
+if (!response.ok) {
+    console.error(`❌ فشل تحميل السكشن: ${response.status}`);
+    return;
+}
+const svgText = await response.text();
+console.log(`📄 طول النص: ${svgText.length}`, svgText.slice(0, 200));
+const match = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+console.log(`🔎 نتيجة المطابقة:`, match ? `نجحت، طول المحتوى ${match[1].length}` : 'فشلت');
+
 export function updateWoodLogo(groupLetter) {
     const dynamicGroup = document.getElementById('dynamic-links-group');
     if (!dynamicGroup) return;
