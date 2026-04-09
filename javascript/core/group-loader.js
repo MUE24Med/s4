@@ -156,8 +156,11 @@ export async function loadGroupSVG(groupLetter) {
             updateLoadProgress();
             return;
         }
-        const svgText = await response.text();
-        const match = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+ const svgText = await response.text();
+const match = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+
+console.log("SECTION SVG:", match?.[1]);
+
         if (match && match[1]) {
             groupContainer.innerHTML = match[1];
             const injectedImages = groupContainer.querySelectorAll('image[data-src]');
