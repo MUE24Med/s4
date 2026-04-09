@@ -10,7 +10,4 @@
   </g>
 </g>
 
-<!-- ✅ النص في النهاية ليظهر فوق الصور والمستطيلات -->
-<text x="30" y="80" fill="#ffca28" font-size="40" font-weight="bold" font-family="Arial, sans-serif" style="text-shadow: 2px 2px 6px black; pointer-events: none;">Group B - Section 5</text>
-
 </svg>
