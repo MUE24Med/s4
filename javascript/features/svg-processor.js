@@ -3,23 +3,20 @@
 // ============================================
 
 import { RAW_CONTENT_BASE, isTouchDevice, TAP_THRESHOLD_MS } from '../core/config.js';
-import * as woodInterface from '../ui/wood-interface.js'; // ✅ استيراد كامل للموديول
+import * as woodInterface from '../ui/wood-interface.js';
 import { getCumulativeTranslate, getGroupImage, wrapText, addShownError, hasShownError } from '../core/utils.js';
 import { smartOpen } from '../ui/pdf-viewer.js';
 
-// ✅ getter يقرأ القيمة الحالية من الموديول في كل مرة
 function isInteractionEnabled() {
     return woodInterface.interactionEnabled;
 }
 
-// حالة التكبير الحالية
 export let activeState = {
     rect: null, zoomPart: null, zoomText: null, zoomBg: null,
     baseText: null, baseBg: null, animationId: null, clipPathId: null,
     touchStartTime: 0, initialScrollLeft: 0
 };
 
-// ---------- تنظيف تأثير الهوفر ----------
 export function cleanupHover() {
     if (!activeState.rect) return;
     if (activeState.animationId) clearInterval(activeState.animationId);
@@ -39,23 +36,6 @@ export function cleanupHover() {
     });
 }
 
-// ---------- إيجاد أقرب صورة خلفية للمستطيل ----------
-function findNearestBackgroundImage(rect) {
-    // البحث في نفس المجموعة أو المجموعات الأب
-    let parent = rect.parentElement;
-    const groupContainer = document.getElementById('group-specific-content');
-    while (parent && parent !== groupContainer && parent !== document.body) {
-        const img = parent.querySelector('image[data-src]');
-        if (img) return img;
-        parent = parent.parentElement;
-    }
-    // إذا لم يجد، خذ أول صورة في الحاوية (آخر صورة خلفية)
-    const allImages = groupContainer ? groupContainer.querySelectorAll('image[data-src]') : [];
-    if (allImages.length > 0) return allImages[allImages.length - 1];
-    return null;
-}
-
-// ---------- بدء تأثير الهوفر ----------
 export function startHover() {
     if (!isInteractionEnabled() || this.classList.contains('list-item')) return;
     const mainSvg = document.getElementById('main-svg');
@@ -85,17 +65,8 @@ export function startHover() {
     rect.style.transform = `scale(${scaleFactor})`;
     rect.style.strokeWidth = '4px';
 
-    // محاولة العثور على صورة خلفية مناسبة
-    let bgImage = findNearestBackgroundImage(rect);
-    // إذا لم توجد، استخدم الطريقة القديمة getGroupImage (للمستطيلات داخل نفس مجموعة الصورة)
-    if (!bgImage) {
-        const oldImgData = getGroupImage(rect);
-        if (oldImgData && oldImgData.src) {
-            bgImage = { src: oldImgData.src, width: oldImgData.width, height: oldImgData.height, x: oldImgData.x, y: oldImgData.y, group: oldImgData.group };
-        }
-    }
-
-    if (bgImage) {
+    const imgData = getGroupImage(rect);
+    if (imgData && imgData.src) {
         const clipId = `clip-${Date.now()}`;
         activeState.clipPathId = clipId;
         const clip = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
@@ -108,23 +79,16 @@ export function startHover() {
         clipDefs.appendChild(clip).appendChild(cRect);
 
         const zPart = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-        zPart.setAttribute('href', bgImage.src);
-        zPart.setAttribute('width', bgImage.width);
-        zPart.setAttribute('height', bgImage.height);
+        zPart.setAttribute('href', imgData.src);
+        zPart.setAttribute('width', imgData.width);
+        zPart.setAttribute('height', imgData.height);
         zPart.setAttribute('clip-path', `url(#${clipId})`);
 
-        let imgTransX = 0, imgTransY = 0;
-        if (bgImage.group) {
-            const mTrans = bgImage.group.getAttribute('transform')?.match(/translate\s*\(([\d.-]+)[ ,]+([\d.-]+)\s*\)/);
-            if (mTrans) {
-                imgTransX = parseFloat(mTrans[1]);
-                imgTransY = parseFloat(mTrans[2]);
-            }
-        }
-        const imgX = (bgImage.x || 0) + imgTransX;
-        const imgY = (bgImage.y || 0) + imgTransY;
-        zPart.setAttribute('x', imgX);
-        zPart.setAttribute('y', imgY);
+        const mTrans = imgData.group.getAttribute('transform')?.match(/translate\s*\(([\d.-]+)[ ,]+([\d.-]+)\s*\)/);
+        const imgTransX = mTrans ? parseFloat(mTrans[1]) : 0;
+        const imgTransY = mTrans ? parseFloat(mTrans[2]) : 0;
+        zPart.setAttribute('x', imgTransX + imgData.x);
+        zPart.setAttribute('y', imgTransY + imgData.y);
         zPart.style.pointerEvents = 'none';
         zPart.style.transformOrigin = `${centerX}px ${absY + rH / 2}px`;
         zPart.style.transform = `scale(${scaleFactor})`;
@@ -182,11 +146,9 @@ export function startHover() {
     }, 100);
 }
 
-// ---------- معالجة مستطيل واحد ----------
 export function processRect(r) {
     if (r.hasAttribute('data-processed')) return;
 
-    // ✅ تجاهل المستطيلات بدون كلاس لون
     const colorClasses = ['q', 'v', 'i', 'a', 's', 'l', 'is'];
     const hasColor = colorClasses.some(c => r.classList.contains(c));
     if (!hasColor) {
@@ -303,7 +265,6 @@ export function processRect(r) {
     r.setAttribute('data-processed', 'true');
 }
 
-// ---------- مسح جميع المستطيلات ومعالجتها ----------
 export function scan() {
     const mainSvg = document.getElementById('main-svg');
     if (!mainSvg) return;
