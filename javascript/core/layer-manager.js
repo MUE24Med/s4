@@ -1,26 +1,6 @@
 // ============================================
-// layer-manager.js - إدارة ترتيب الطبقات (z-index)
+// layer-manager.js - إدارة ترتيب الطبقات (بدون نقل عناصر خارج مجموعاتها)
 // ============================================
-
-export function sendImagesToBack() {
-    const groupContainer = document.getElementById('group-specific-content');
-    if (!groupContainer) return;
-    const allImages = Array.from(groupContainer.querySelectorAll('image[data-src]'));
-    allImages.forEach(img => {
-        groupContainer.insertBefore(img, groupContainer.firstChild);
-    });
-    console.log(`🔽 تم نقل ${allImages.length} صورة إلى الخلف (أسفل المستطيلات)`);
-}
-
-export function bringRectsToFront() {
-    const groupContainer = document.getElementById('group-specific-content');
-    if (!groupContainer) return;
-    const allRects = Array.from(groupContainer.querySelectorAll('rect'));
-    allRects.forEach(rect => {
-        groupContainer.appendChild(rect);
-    });
-    console.log(`🔼 تم رفع ${allRects.length} مستطيل إلى الأمام`);
-}
 
 export function hideOverlappingGroupImages() {
     const groupContainer = document.getElementById('group-specific-content');
@@ -38,7 +18,6 @@ export function hideOverlappingGroupImages() {
     }
     
     const sectionRects = sectionImages.map(img => ({
-        img: img,
         x: parseFloat(img.getAttribute('x') || 0),
         y: parseFloat(img.getAttribute('y') || 0),
         w: parseFloat(img.getAttribute('width') || 1024),
@@ -51,23 +30,31 @@ export function hideOverlappingGroupImages() {
         const gw = parseFloat(groupImg.getAttribute('width') || 1024);
         const gh = parseFloat(groupImg.getAttribute('height') || 2454);
         
-        const isExactlyOverlapping = sectionRects.some(sr => {
-            const sameX = Math.abs(sr.x - gx) < 5;
-            const sameY = Math.abs(sr.y - gy) < 5;
-            const sameW = Math.abs(sr.w - gw) < 5;
-            const sameH = Math.abs(sr.h - gh) < 5;
-            return sameX && sameY && sameW && sameH;
+        const isOverlapping = sectionRects.some(sr => {
+            return Math.abs(sr.x - gx) < 5 && Math.abs(sr.y - gy) < 5 &&
+                   Math.abs(sr.w - gw) < 5 && Math.abs(sr.h - gh) < 5;
         });
         
-        if (isExactlyOverlapping) {
+        if (isOverlapping) {
             groupImg.style.visibility = 'hidden';
             groupImg.style.opacity = '0';
             groupImg.style.pointerEvents = 'none';
-            console.log(`🗺️ إخفاء صورة الجروب عند (${gx}, ${gy}) - تداخل مع صورة سكشن`);
         } else {
             groupImg.style.visibility = 'visible';
             groupImg.style.opacity = '1';
             groupImg.style.pointerEvents = 'none';
         }
     });
+}
+
+// ✅ رفع مستطيلات السكشن فقط إلى النهاية (دون نقل باقي المستطيلات)
+export function bringSectionRectsToFront() {
+    const groupContainer = document.getElementById('group-specific-content');
+    if (!groupContainer) return;
+    
+    const sectionRects = Array.from(groupContainer.querySelectorAll('rect.section-specific'));
+    sectionRects.forEach(rect => {
+        groupContainer.appendChild(rect); // ينقل فقط مستطيلات السكشن إلى النهاية
+    });
+    console.log(`🔼 تم رفع ${sectionRects.length} مستطيل سكشن إلى الأمام`);
 }
