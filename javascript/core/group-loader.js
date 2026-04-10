@@ -215,34 +215,6 @@ async function loadSectionSVG(groupLetter, sectionNum) {
                 }
                 groupContainer.appendChild(child);
             }
-
-            // ✅ معالجة مستطيلات السكشن فوراً: تعيين العرض والارتفاع والرؤية
-            const sectionRects = groupContainer.querySelectorAll('rect.m');
-            console.log(`📐 تم إضافة ${sectionRects.length} مستطيل للسكشن ${sectionNum}`);
-            sectionRects.forEach(rect => {
-                // تعيين العرض بناءً على الكلاس w/hw إذا كان مفقوداً
-                let width = rect.getAttribute('width');
-                if (!width || isNaN(parseFloat(width))) {
-                    if (rect.classList.contains('w')) {
-                        rect.setAttribute('width', '113.5');
-                    } else if (rect.classList.contains('hw')) {
-                        rect.setAttribute('width', '56.75');
-                    } else {
-                        rect.setAttribute('width', '100'); // عرض افتراضي
-                    }
-                }
-                // تعيين ارتفاع افتراضي إذا كان مفقوداً
-                let height = rect.getAttribute('height');
-                if (!height || isNaN(parseFloat(height))) {
-                    rect.setAttribute('height', '50');
-                }
-                
-                rect.style.visibility = 'visible';
-                rect.style.pointerEvents = 'all';
-                rect.style.strokeWidth = '4px';
-                rect.style.fill = 'rgba(0, 255, 0, 0.1)';
-            });
-
             const newImages = groupContainer.querySelectorAll('image[data-src]');
             newImages.forEach(img => {
                 const src = img.getAttribute('data-src');
@@ -284,7 +256,30 @@ export function updateWoodLogo(groupLetter) {
     dynamicGroup.appendChild(banner);
 }
 
-// ---------- عرض شاشة اختيار السكشن (إجباري) ----------
+// ---------- إضافة النص المدمج (الجروب + السكشن) في نفس السطر ----------
+function updateSectionName() {
+    const upperLayer = document.querySelector('#upper-wood-layer');
+    if (!upperLayer) return;
+    const oldTexts = upperLayer.querySelectorAll('.group-name-text, .section-name-text');
+    oldTexts.forEach(text => text.remove());
+    if (currentGroup && currentSection) {
+        const textElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textElem.setAttribute("class", "section-name-text");
+        textElem.setAttribute("x", "30");
+        textElem.setAttribute("y", "60");
+        textElem.setAttribute("fill", "#ffca28");
+        textElem.setAttribute("font-size", "32");
+        textElem.setAttribute("font-weight", "bold");
+        textElem.setAttribute("font-family", "Arial, sans-serif");
+        textElem.style.textShadow = "2px 2px 6px black";
+        textElem.style.pointerEvents = "none";
+        textElem.textContent = `Group ${currentGroup} - Section ${currentSection}`;
+        upperLayer.appendChild(textElem);
+        console.log(`🏷️ تم إضافة النص المدمج: Group ${currentGroup} - Section ${currentSection}`);
+    }
+}
+
+// ---------- عرض شاشة اختيار السكشن ----------
 export async function showSectionSelection(groupLetter) {
     const groupSelectionScreen = document.getElementById('group-selection-screen');
     const sectionScreen = document.getElementById('section-selection-screen');
@@ -336,7 +331,7 @@ async function selectSection(sectionNum, groupLetter) {
     await initializeGroup(groupLetter, sectionNum);
 }
 
-// ---------- تهيئة المجموعة (تستقبل سكشن إجباري) ----------
+// ---------- تهيئة المجموعة ----------
 export async function initializeGroup(groupLetter, sectionNum) {
     if (!sectionNum) {
         console.error('❌ initializeGroup requires a section number');
@@ -410,6 +405,10 @@ async function finishLoading() {
     updateDynamicSizes();
     scan();
     updateWoodInterface();
+    
+    // ✅ إضافة النص المدمج
+    updateSectionName();
+    
     goToWood();
 
     const mainSvg = document.getElementById('main-svg');
@@ -419,6 +418,7 @@ async function finishLoading() {
         mainSvg.classList.add('loaded');
     }
     hideLoadingScreen();
+    console.log('🎉 اكتمل تحميل المجموعة والسكشن بنجاح');
 }
 
 export function updateDynamicSizes() {
