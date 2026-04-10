@@ -149,16 +149,39 @@ export function startHover() {
 export function processRect(r) {
     if (r.hasAttribute('data-processed')) return;
 
+    // ✅ تأمين العرض والارتفاع قبل أي شيء
+    let width = r.getAttribute('width');
+    let height = r.getAttribute('height');
+    
+    if (!width || isNaN(parseFloat(width))) {
+        if (r.classList.contains('w')) {
+            width = '113.5';
+            r.setAttribute('width', width);
+        } else if (r.classList.contains('hw')) {
+            width = '56.75';
+            r.setAttribute('width', width);
+        } else {
+            // إذا لم يكن هناك عرض محدد ولا كلاس w/hw، نستخدم عرض افتراضي 100
+            width = '100';
+            r.setAttribute('width', width);
+        }
+    }
+    
+    if (!height || isNaN(parseFloat(height))) {
+        // إذا لم يكن هناك ارتفاع، نحاول تقدير ارتفاع افتراضي (مثلاً 50)
+        height = '50';
+        r.setAttribute('height', height);
+    }
+
     const colorClasses = ['q', 'v', 'i', 'a', 's', 'l', 'is'];
     const hasColor = colorClasses.some(c => r.classList.contains(c));
 
     // ✅ إجبار المستطيل على الظهور والتفاعل
     r.style.visibility = 'visible';
     r.style.pointerEvents = 'all';
-    // زيادة سمك الحدود مؤقتاً للتأكد من رؤيتها (يمكنك تعديله لاحقاً)
     r.style.strokeWidth = '4px';
-    // خلفية شفافة خفيفة جداً للتأكد من موقع المستطيل (اختياري، يمكن حذفه)
-    r.style.fill = 'rgba(0, 255, 0, 0.05)';
+    // خلفية شفافة خفيفة جداً للتأكد من موقع المستطيل (يمكن إزالتها بعد التأكد)
+    r.style.fill = 'rgba(0, 255, 0, 0.1)';
 
     if (!hasColor) {
         // المستطيلات بدون لون (غير تفاعلية) نخفيها تماماً
@@ -168,12 +191,9 @@ export function processRect(r) {
         return;
     }
 
-    // تسجيل للمساعدة في التصحيح
     console.log(`✅ معالجة مستطيل ملون: ${r.getAttribute('data-href') || 'بدون رابط'}`, r);
 
-    if (r.classList.contains('w')) r.setAttribute('width', '113.5');
-    if (r.classList.contains('hw')) r.setAttribute('width', '56.75');
-
+    // بعد التأكد من وجود العرض، يمكن متابعة المعالجة
     let href = r.getAttribute('data-href') || '';
     if (href && href !== '#' && !href.startsWith('http')) {
         href = `${RAW_CONTENT_BASE}${href}`;
@@ -184,7 +204,7 @@ export function processRect(r) {
     const fileName = href !== '#' ? href.split('/').pop().split('#')[0].split('.').slice(0, -1).join('.') : '';
     const name = dataFull || fileName || '';
 
-    const w = parseFloat(r.getAttribute('width')) || r.getBBox().width;
+    const w = parseFloat(r.getAttribute('width'));
     const x = parseFloat(r.getAttribute('x')) || 0;
     const y = parseFloat(r.getAttribute('y')) || 0;
 
