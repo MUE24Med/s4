@@ -19,6 +19,15 @@ const urlsToCache = [
     './javascript/core/navigation.js',
     './javascript/core/group-loader.js',
     './javascript/core/state.js',
+    // ===== الملفات الجديدة المقسمة =====
+    './javascript/core/loading-state.js',
+    './javascript/core/loading-ui.js',
+    './javascript/core/image-loader.js',
+    './javascript/core/svg-loader.js',
+    './javascript/core/layer-manager.js',
+    './javascript/core/dynamic-size.js',
+    './javascript/core/section-name.js',
+    // =================================
     './javascript/ui/pdf-viewer.js',
     './javascript/ui/wood-interface.js',
     './javascript/ui/search-and-eye.js',
