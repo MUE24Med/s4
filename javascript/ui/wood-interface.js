@@ -6,7 +6,7 @@ import { RAW_CONTENT_BASE, NAV_STATE, SUBJECT_FOLDERS, REPO_NAME } from '../core
 import { normalizeArabic, autoTranslate, getDisplayName, resetBrowserZoom } from '../core/utils.js';
 import { pushNavigationState, goToWood, getCurrentNavigationState, navigationHistory } from '../core/navigation.js';
 import { smartOpen } from './pdf-viewer.js';
-import { globalFileTree, currentGroup, currentFolder, setCurrentFolder } from '../core/state.js';
+import { globalFileTree, currentGroup, currentFolder, setCurrentFolder, currentSection } from '../core/state.js';
 import { updateDynamicSizes, fetchGlobalTree, updateWoodLogo } from '../core/group-loader.js';
 import { addScrollSystem } from './scroll-system.js';
 import {
@@ -44,14 +44,15 @@ export async function updateWoodInterface() {
     dynamicGroup.querySelectorAll('.wood-folder-group, .wood-file-group, .scroll-container-group, .subject-separator-group, .scroll-bar-group, .window-frame')
         .forEach(el => el.remove());
 
-    // ===== إضافة اسم المجموعة فوق صورة Upper_wood.webp =====
+    // ===== إضافة اسم المجموعة فوق Upper_wood.webp (فقط إذا لم يكن هناك سكشن نشط) =====
     const upperLayer = document.querySelector('#upper-wood-layer');
     if (upperLayer) {
-        // إزالة أي نص قديم
+        // إزالة أي نص قديم خاص بالمجموعة (نترك النص المدمج إن وجد)
         const oldGroupText = upperLayer.querySelector('.group-name-text');
         if (oldGroupText) oldGroupText.remove();
         
-        if (currentGroup) {
+        // إذا لم يكن هناك سكشن نشط، أضف اسم المجموعة فقط
+        if (currentGroup && !currentSection) {
             const groupText = document.createElementNS("http://www.w3.org/2000/svg", "text");
             groupText.setAttribute("class", "group-name-text");
             groupText.setAttribute("x", "30");
@@ -64,10 +65,8 @@ export async function updateWoodInterface() {
             groupText.style.pointerEvents = "none";
             groupText.textContent = `Group ${currentGroup}`;
             upperLayer.appendChild(groupText);
-            console.log(`🏷️ تم إضافة اسم المجموعة فوق Upper_wood: Group ${currentGroup}`);
+            console.log(`🏷️ تم إضافة اسم المجموعة (بدون سكشن): Group ${currentGroup}`);
         }
-    } else {
-        console.warn('⚠️ upper-wood-layer غير موجود');
     }
 
     await fetchGlobalTree();
