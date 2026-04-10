@@ -39,9 +39,25 @@ export function cleanupHover() {
     });
 }
 
+// ---------- إيجاد أقرب صورة خلفية للمستطيل ----------
+function findNearestBackgroundImage(rect) {
+    // البحث في نفس المجموعة أو المجموعات الأب
+    let parent = rect.parentElement;
+    const groupContainer = document.getElementById('group-specific-content');
+    while (parent && parent !== groupContainer && parent !== document.body) {
+        const img = parent.querySelector('image[data-src]');
+        if (img) return img;
+        parent = parent.parentElement;
+    }
+    // إذا لم يجد، خذ أول صورة في الحاوية (آخر صورة خلفية)
+    const allImages = groupContainer ? groupContainer.querySelectorAll('image[data-src]') : [];
+    if (allImages.length > 0) return allImages[allImages.length - 1];
+    return null;
+}
+
 // ---------- بدء تأثير الهوفر ----------
 export function startHover() {
-    if (!isInteractionEnabled() || this.classList.contains('list-item')) return; // ✅
+    if (!isInteractionEnabled() || this.classList.contains('list-item')) return;
     const mainSvg = document.getElementById('main-svg');
     const clipDefs = mainSvg?.querySelector('defs');
     if (!mainSvg || !clipDefs) return;
@@ -69,8 +85,17 @@ export function startHover() {
     rect.style.transform = `scale(${scaleFactor})`;
     rect.style.strokeWidth = '4px';
 
-    const imgData = getGroupImage(rect);
-    if (imgData && imgData.src) {
+    // محاولة العثور على صورة خلفية مناسبة
+    let bgImage = findNearestBackgroundImage(rect);
+    // إذا لم توجد، استخدم الطريقة القديمة getGroupImage (للمستطيلات داخل نفس مجموعة الصورة)
+    if (!bgImage) {
+        const oldImgData = getGroupImage(rect);
+        if (oldImgData && oldImgData.src) {
+            bgImage = { src: oldImgData.src, width: oldImgData.width, height: oldImgData.height, x: oldImgData.x, y: oldImgData.y, group: oldImgData.group };
+        }
+    }
+
+    if (bgImage) {
         const clipId = `clip-${Date.now()}`;
         activeState.clipPathId = clipId;
         const clip = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
@@ -83,16 +108,23 @@ export function startHover() {
         clipDefs.appendChild(clip).appendChild(cRect);
 
         const zPart = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-        zPart.setAttribute('href', imgData.src);
-        zPart.setAttribute('width', imgData.width);
-        zPart.setAttribute('height', imgData.height);
+        zPart.setAttribute('href', bgImage.src);
+        zPart.setAttribute('width', bgImage.width);
+        zPart.setAttribute('height', bgImage.height);
         zPart.setAttribute('clip-path', `url(#${clipId})`);
 
-        const mTrans = imgData.group.getAttribute('transform')?.match(/translate\s*\(([\d.-]+)[ ,]+([\d.-]+)\s*\)/);
-        const imgTransX = mTrans ? parseFloat(mTrans[1]) : 0;
-        const imgTransY = mTrans ? parseFloat(mTrans[2]) : 0;
-        zPart.setAttribute('x', imgTransX + imgData.x);
-        zPart.setAttribute('y', imgTransY + imgData.y);
+        let imgTransX = 0, imgTransY = 0;
+        if (bgImage.group) {
+            const mTrans = bgImage.group.getAttribute('transform')?.match(/translate\s*\(([\d.-]+)[ ,]+([\d.-]+)\s*\)/);
+            if (mTrans) {
+                imgTransX = parseFloat(mTrans[1]);
+                imgTransY = parseFloat(mTrans[2]);
+            }
+        }
+        const imgX = (bgImage.x || 0) + imgTransX;
+        const imgY = (bgImage.y || 0) + imgTransY;
+        zPart.setAttribute('x', imgX);
+        zPart.setAttribute('y', imgY);
         zPart.style.pointerEvents = 'none';
         zPart.style.transformOrigin = `${centerX}px ${absY + rH / 2}px`;
         zPart.style.transform = `scale(${scaleFactor})`;
@@ -237,13 +269,13 @@ export function processRect(r) {
     const scrollContainer = document.getElementById('scroll-container');
     if (scrollContainer) {
         r.addEventListener('touchstart', function (e) {
-            if (!isInteractionEnabled()) return; // ✅
+            if (!isInteractionEnabled()) return;
             activeState.touchStartTime = Date.now();
             activeState.initialScrollLeft = scrollContainer.scrollLeft;
             startHover.call(this);
         });
         r.addEventListener('touchend', async function (e) {
-            if (!isInteractionEnabled()) return; // ✅
+            if (!isInteractionEnabled()) return;
             if (Math.abs(scrollContainer.scrollLeft - activeState.initialScrollLeft) < 10 &&
                 (Date.now() - activeState.touchStartTime) < TAP_THRESHOLD_MS) {
                 if (href && href !== '#') {
