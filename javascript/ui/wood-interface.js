@@ -44,23 +44,30 @@ export async function updateWoodInterface() {
     dynamicGroup.querySelectorAll('.wood-folder-group, .wood-file-group, .scroll-container-group, .subject-separator-group, .scroll-bar-group, .window-frame')
         .forEach(el => el.remove());
 
-    // ===== إضافة اسم المجموعة في أعلى اليسار =====
-    const oldGroupText = dynamicGroup.querySelector('.group-name-text');
-    if (oldGroupText) oldGroupText.remove();
-    if (currentGroup) {
-        const groupText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        groupText.setAttribute("class", "group-name-text");
-        groupText.setAttribute("x", "30");
-        groupText.setAttribute("y", "60");
-        groupText.setAttribute("fill", "#ffca28");
-        groupText.setAttribute("font-size", "32");
-        groupText.setAttribute("font-weight", "bold");
-        groupText.setAttribute("font-family", "Arial, sans-serif");
-        groupText.style.textShadow = "2px 2px 6px black";
-        groupText.style.pointerEvents = "none";
-        groupText.textContent = `Group ${currentGroup}`;
-        dynamicGroup.appendChild(groupText);
-        console.log(`🏷️ تم إضافة اسم المجموعة: Group ${currentGroup}`);
+    // ===== إضافة اسم المجموعة فوق صورة Upper_wood.webp =====
+    const upperLayer = document.querySelector('#upper-wood-layer');
+    if (upperLayer) {
+        // إزالة أي نص قديم
+        const oldGroupText = upperLayer.querySelector('.group-name-text');
+        if (oldGroupText) oldGroupText.remove();
+        
+        if (currentGroup) {
+            const groupText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            groupText.setAttribute("class", "group-name-text");
+            groupText.setAttribute("x", "30");
+            groupText.setAttribute("y", "60");
+            groupText.setAttribute("fill", "#ffca28");
+            groupText.setAttribute("font-size", "32");
+            groupText.setAttribute("font-weight", "bold");
+            groupText.setAttribute("font-family", "Arial, sans-serif");
+            groupText.style.textShadow = "2px 2px 6px black";
+            groupText.style.pointerEvents = "none";
+            groupText.textContent = `Group ${currentGroup}`;
+            upperLayer.appendChild(groupText);
+            console.log(`🏷️ تم إضافة اسم المجموعة فوق Upper_wood: Group ${currentGroup}`);
+        }
+    } else {
+        console.warn('⚠️ upper-wood-layer غير موجود');
     }
 
     await fetchGlobalTree();
