@@ -165,16 +165,27 @@ export function processRect(r) {
 
     const colorClasses = ['q', 'v', 'i', 'a', 's', 'l', 'is'];
     const hasColor = colorClasses.some(c => r.classList.contains(c));
-    if (!hasColor) {
+    
+    // ✅ معاملة خاصة لمستطيلات السكشن (حتى لو بدون لون)
+    const isSectionRect = r.classList.contains('section-specific');
+    
+    if (!hasColor && !isSectionRect) {
         r.style.visibility = 'hidden';
         r.style.pointerEvents = 'none';
         r.setAttribute('data-processed', 'true');
         return;
     }
 
-    // ✅ تأكد من أن المستطيل ظاهر وقابل للتفاعل
+    // تأكد من أن المستطيل ظاهر وقابل للتفاعل
     r.style.visibility = 'visible';
     r.style.pointerEvents = 'auto';
+    
+    // إذا كان مستطيل سكشن وليس له لون، أعطه لون مؤقت للرؤية
+    if (isSectionRect && !hasColor) {
+        r.style.stroke = '#ffcc00';
+        r.style.strokeWidth = '3px';
+        r.style.fill = 'rgba(255, 100, 0, 0.2)';
+    }
 
     if (r.classList.contains('w')) r.setAttribute('width', '113.5');
     if (r.classList.contains('hw')) r.setAttribute('width', '56.75');
