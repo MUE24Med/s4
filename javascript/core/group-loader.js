@@ -192,6 +192,7 @@ async function loadSectionSVG(groupLetter, sectionNum) {
     const groupContainer = document.getElementById('group-specific-content');
     if (!groupContainer) return;
     const sectionSvgPath = `sections/group-${groupLetter}/section-${sectionNum}.svg`;
+    console.log(`📂 محاولة تحميل السكشن: ${sectionSvgPath}`);
     try {
         const cache = await caches.open(CACHE_NAME);
         let response = await cache.match(sectionSvgPath);
@@ -200,29 +201,38 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             if (response.ok) cache.put(sectionSvgPath, response.clone());
         }
         if (!response.ok) {
-            console.warn(`⚠️ SVG السكشن ${sectionNum} غير موجود`);
+            console.warn(`⚠️ SVG السكشن ${sectionNum} غير موجود (${response.status})`);
             return;
         }
         const svgText = await response.text();
         const match = svgText.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
         if (match && match[1]) {
-            const fragment = document.createRange().createContextualFragment(match[1]);
-            const children = fragment.children;
-            while (children.length) {
-                const child = children[0];
-                if (child.tagName === 'g' || child.tagName === 'rect') {
-                    child.classList.add('section-specific');
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(match[0], 'image/svg+xml');
+            const svgRoot = doc.documentElement;
+            let addedCount = 0;
+            while (svgRoot.children.length) {
+                const child = svgRoot.children[0];
+                // أضف كلاس section-specific لكل العناصر المضافة من السكشن
+                child.classList.add('section-specific');
+                if (child.tagName === 'image') {
+                    child.classList.add('section-image');
                 }
-                groupContainer.appendChild(child);
+                // أضف العنصر في بداية الحاوية ليكون فوق محتوى الجروب
+                groupContainer.insertBefore(child, groupContainer.firstChild);
+                addedCount++;
             }
+            console.log(`✅ تم إضافة ${addedCount} عنصراً من السكشن ${sectionNum} إلى بداية الحاوية`);
             const newImages = groupContainer.querySelectorAll('image[data-src]');
             newImages.forEach(img => {
                 const src = img.getAttribute('data-src');
                 if (src && !imageUrlsToLoad.includes(src)) imageUrlsToLoad.push(src);
             });
+        } else {
+            console.warn(`⚠️ لم يتم العثور على محتوى SVG داخل ملف السكشن ${sectionNum}`);
         }
     } catch (err) {
-        console.error(`❌ خطأ في تحميل SVG السكشن:`, err);
+        console.error(`❌ خطأ فادح في تحميل SVG السكشن ${sectionNum}:`, err);
     }
 }
 
@@ -256,7 +266,7 @@ export function updateWoodLogo(groupLetter) {
     dynamicGroup.appendChild(banner);
 }
 
-// ---------- إضافة النص المدمج (الجروب + السكشن) في نفس السطر ----------
+// ---------- إضافة النص المدمج (الجروب + السكشن) ----------
 function updateSectionName() {
     const upperLayer = document.querySelector('#upper-wood-layer');
     if (!upperLayer) return;
@@ -405,10 +415,7 @@ async function finishLoading() {
     updateDynamicSizes();
     scan();
     updateWoodInterface();
-    
-    // ✅ إضافة النص المدمج
     updateSectionName();
-    
     goToWood();
 
     const mainSvg = document.getElementById('main-svg');
