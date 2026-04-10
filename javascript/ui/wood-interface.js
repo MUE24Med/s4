@@ -6,7 +6,7 @@ import { RAW_CONTENT_BASE, NAV_STATE, SUBJECT_FOLDERS, REPO_NAME } from '../core
 import { normalizeArabic, autoTranslate, getDisplayName, resetBrowserZoom } from '../core/utils.js';
 import { pushNavigationState, goToWood, getCurrentNavigationState, navigationHistory } from '../core/navigation.js';
 import { smartOpen } from './pdf-viewer.js';
-import { globalFileTree, currentGroup, currentFolder, setCurrentFolder, currentSection } from '../core/state.js';
+import { globalFileTree, currentGroup, currentFolder, setCurrentFolder } from '../core/state.js';
 import { updateDynamicSizes, fetchGlobalTree, updateWoodLogo } from '../core/group-loader.js';
 import { addScrollSystem } from './scroll-system.js';
 import {
@@ -43,31 +43,6 @@ export async function updateWoodInterface() {
     // تنظيف العناصر السابقة
     dynamicGroup.querySelectorAll('.wood-folder-group, .wood-file-group, .scroll-container-group, .subject-separator-group, .scroll-bar-group, .window-frame')
         .forEach(el => el.remove());
-
-    // ===== إضافة اسم المجموعة فوق Upper_wood.webp (فقط إذا لم يكن هناك سكشن نشط) =====
-    const upperLayer = document.querySelector('#upper-wood-layer');
-    if (upperLayer) {
-        // إزالة أي نص قديم خاص بالمجموعة (نترك النص المدمج إن وجد)
-        const oldGroupText = upperLayer.querySelector('.group-name-text');
-        if (oldGroupText) oldGroupText.remove();
-        
-        // إذا لم يكن هناك سكشن نشط، أضف اسم المجموعة فقط
-        if (currentGroup && !currentSection) {
-            const groupText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            groupText.setAttribute("class", "group-name-text");
-            groupText.setAttribute("x", "30");
-            groupText.setAttribute("y", "60");
-            groupText.setAttribute("fill", "#ffca28");
-            groupText.setAttribute("font-size", "32");
-            groupText.setAttribute("font-weight", "bold");
-            groupText.setAttribute("font-family", "Arial, sans-serif");
-            groupText.style.textShadow = "2px 2px 6px black";
-            groupText.style.pointerEvents = "none";
-            groupText.textContent = `Group ${currentGroup}`;
-            upperLayer.appendChild(groupText);
-            console.log(`🏷️ تم إضافة اسم المجموعة (بدون سكشن): Group ${currentGroup}`);
-        }
-    }
 
     await fetchGlobalTree();
 
@@ -113,6 +88,11 @@ export async function updateWoodInterface() {
     const itemsMap = new Map();
 
     globalFileTree.forEach(item => {
+        // ✅ إخفاء أي ملف أو مجلد يحتوي على 'section' في مساره
+        if (item.path.includes('/section/') || item.path.split('/').pop().toLowerCase().includes('section')) {
+            return; // تجاهل هذا العنصر تماماً
+        }
+
         if (item.path.startsWith(folderPrefix)) {
             const relativePath = item.path.substring(folderPrefix.length);
             const pathParts = relativePath.split('/');
@@ -136,7 +116,8 @@ export async function updateWoodInterface() {
                     }
                 }
 
-                if (isDir && name !== 'image' && name !== 'groups' && name !== 'javascript') {
+                // ✅ إضافة شرط إضافي لمنع إظهار مجلد section
+                if (isDir && name !== 'image' && name !== 'groups' && name !== 'javascript' && name !== 'section') {
                     itemsMap.set(name, {
                         name: name,
                         type: 'dir',
@@ -144,7 +125,7 @@ export async function updateWoodInterface() {
                         isSubject: isSubjectItem,
                         subject: mainSubject
                     });
-                } else if (isPdf && pathParts.length === 1) {
+                } else if (isPdf && pathParts.length === 1 && !name.includes('section') && !item.path.includes('/section/')) {
                     itemsMap.set(name, {
                         name: name,
                         type: 'file',
