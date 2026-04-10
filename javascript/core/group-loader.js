@@ -1,5 +1,5 @@
 // ============================================
-// group-loader.js - الملف الرئيسي (يستدعي الوحدات)
+// group-loader.js - الملف الرئيسي (بدون نقل عناصر)
 // ============================================
 
 import { RAW_CONTENT_BASE, TREE_API_URL, NAV_STATE } from './config.js';
@@ -174,8 +174,9 @@ async function finishLoading(groupLetter, sectionNum) {
     updateDynamicSizes();
     scan();
     
-    hideOverlappingGroupImages();
-    bringSectionRectsToFront();
+    // ❌ لا نستدعي أي دوال تنقل العناصر - هذا كان سبب المشكلة
+    // hideOverlappingGroupImages();
+    // bringSectionRectsToFront();
     
     updateSectionName(groupLetter, sectionNum);
     updateWoodInterface();
