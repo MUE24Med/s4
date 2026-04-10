@@ -216,14 +216,31 @@ async function loadSectionSVG(groupLetter, sectionNum) {
                 groupContainer.appendChild(child);
             }
 
-            // ✅ التأكيد على أن مستطيلات السكشن ظاهرة وتتفاعل فوراً
+            // ✅ معالجة مستطيلات السكشن فوراً: تعيين العرض والارتفاع والرؤية
             const sectionRects = groupContainer.querySelectorAll('rect.m');
             console.log(`📐 تم إضافة ${sectionRects.length} مستطيل للسكشن ${sectionNum}`);
             sectionRects.forEach(rect => {
+                // تعيين العرض بناءً على الكلاس w/hw إذا كان مفقوداً
+                let width = rect.getAttribute('width');
+                if (!width || isNaN(parseFloat(width))) {
+                    if (rect.classList.contains('w')) {
+                        rect.setAttribute('width', '113.5');
+                    } else if (rect.classList.contains('hw')) {
+                        rect.setAttribute('width', '56.75');
+                    } else {
+                        rect.setAttribute('width', '100'); // عرض افتراضي
+                    }
+                }
+                // تعيين ارتفاع افتراضي إذا كان مفقوداً
+                let height = rect.getAttribute('height');
+                if (!height || isNaN(parseFloat(height))) {
+                    rect.setAttribute('height', '50');
+                }
+                
                 rect.style.visibility = 'visible';
                 rect.style.pointerEvents = 'all';
                 rect.style.strokeWidth = '4px';
-                rect.style.fill = 'rgba(0, 255, 0, 0.05)';
+                rect.style.fill = 'rgba(0, 255, 0, 0.1)';
             });
 
             const newImages = groupContainer.querySelectorAll('image[data-src]');
