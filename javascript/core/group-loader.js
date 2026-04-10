@@ -215,6 +215,17 @@ async function loadSectionSVG(groupLetter, sectionNum) {
                 }
                 groupContainer.appendChild(child);
             }
+
+            // ✅ التأكيد على أن مستطيلات السكشن ظاهرة وتتفاعل فوراً
+            const sectionRects = groupContainer.querySelectorAll('rect.m');
+            console.log(`📐 تم إضافة ${sectionRects.length} مستطيل للسكشن ${sectionNum}`);
+            sectionRects.forEach(rect => {
+                rect.style.visibility = 'visible';
+                rect.style.pointerEvents = 'all';
+                rect.style.strokeWidth = '4px';
+                rect.style.fill = 'rgba(0, 255, 0, 0.05)';
+            });
+
             const newImages = groupContainer.querySelectorAll('image[data-src]');
             newImages.forEach(img => {
                 const src = img.getAttribute('data-src');
@@ -254,32 +265,6 @@ export function updateWoodLogo(groupLetter) {
         pushNavigationState(NAV_STATE.GROUP_SELECTION);
     };
     dynamicGroup.appendChild(banner);
-}
-
-// ===== إضافة النص المدمج (الجروب + السكشن) في نفس السطر =====
-function updateSectionName() {
-    const upperLayer = document.querySelector('#upper-wood-layer');
-    if (!upperLayer) return;
-    
-    // إزالة أي نصوص سابقة (من wood-interface أو group-loader)
-    const oldTexts = upperLayer.querySelectorAll('.group-name-text, .section-name-text');
-    oldTexts.forEach(text => text.remove());
-    
-    if (currentGroup && currentSection) {
-        const textElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        textElem.setAttribute("class", "section-name-text");
-        textElem.setAttribute("x", "30");
-        textElem.setAttribute("y", "60");  // نفس ارتفاع اسم الجروب
-        textElem.setAttribute("fill", "#ffca28");
-        textElem.setAttribute("font-size", "32");
-        textElem.setAttribute("font-weight", "bold");
-        textElem.setAttribute("font-family", "Arial, sans-serif");
-        textElem.style.textShadow = "2px 2px 6px black";
-        textElem.style.pointerEvents = "none";
-        textElem.textContent = `Group ${currentGroup} - Section ${currentSection}`;
-        upperLayer.appendChild(textElem);
-        console.log(`🏷️ تم إضافة النص المدمج: Group ${currentGroup} - Section ${currentSection}`);
-    }
 }
 
 // ---------- عرض شاشة اختيار السكشن (إجباري) ----------
@@ -408,10 +393,6 @@ async function finishLoading() {
     updateDynamicSizes();
     scan();
     updateWoodInterface();
-    
-    // ✅ إضافة النص المدمج (الجروب + السكشن)
-    updateSectionName();
-    
     goToWood();
 
     const mainSvg = document.getElementById('main-svg');
@@ -421,7 +402,6 @@ async function finishLoading() {
         mainSvg.classList.add('loaded');
     }
     hideLoadingScreen();
-    console.log('🎉 اكتمل تحميل المجموعة والسكشن بنجاح');
 }
 
 export function updateDynamicSizes() {
