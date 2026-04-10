@@ -7,7 +7,9 @@ import { normalizeArabic, autoTranslate, getDisplayName, resetBrowserZoom } from
 import { pushNavigationState, goToWood, getCurrentNavigationState, navigationHistory } from '../core/navigation.js';
 import { smartOpen } from './pdf-viewer.js';
 import { globalFileTree, currentGroup, currentFolder, setCurrentFolder } from '../core/state.js';
-import { updateDynamicSizes, fetchGlobalTree, updateWoodLogo } from '../core/group-loader.js';
+// ✅ استيراد الدوال من ملفاتها الصحيحة
+import { updateDynamicSizes } from '../core/dynamic-size.js';
+import { fetchGlobalTree, updateWoodLogo } from '../core/group-loader.js';
 import { addScrollSystem } from './scroll-system.js';
 import {
     setupGroupChangeButton,
