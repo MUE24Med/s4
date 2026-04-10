@@ -1,5 +1,5 @@
 // ============================================
-// layer-manager.js - إدارة ترتيب الطبقات (بدون نقل عناصر خارج مجموعاتها)
+// layer-manager.js - إدارة ترتيب الطبقات (بدون نقل خارج المجموعات)
 // ============================================
 
 export function hideOverlappingGroupImages() {
@@ -47,14 +47,13 @@ export function hideOverlappingGroupImages() {
     });
 }
 
-// ✅ رفع مستطيلات السكشن فقط إلى النهاية (دون نقل باقي المستطيلات)
 export function bringSectionRectsToFront() {
     const groupContainer = document.getElementById('group-specific-content');
     if (!groupContainer) return;
     
     const sectionRects = Array.from(groupContainer.querySelectorAll('rect.section-specific'));
     sectionRects.forEach(rect => {
-        groupContainer.appendChild(rect); // ينقل فقط مستطيلات السكشن إلى النهاية
+        groupContainer.appendChild(rect);
     });
     console.log(`🔼 تم رفع ${sectionRects.length} مستطيل سكشن إلى الأمام`);
 }
