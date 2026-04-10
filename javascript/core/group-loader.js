@@ -256,26 +256,28 @@ export function updateWoodLogo(groupLetter) {
     dynamicGroup.appendChild(banner);
 }
 
-// ---------- إضافة اسم السكشن فوق Upper_wood.webp ----------
-function updateSectionName(groupLetter, sectionNum) {
+// ===== إضافة اسم السكشن فوق Upper_wood.webp =====
+function updateSectionName() {
     const upperLayer = document.querySelector('#upper-wood-layer');
     if (!upperLayer) return;
     // إزالة اسم السكشن القديم فقط (نحتفظ باسم المجموعة)
     const oldSectionText = upperLayer.querySelector('.section-name-text');
     if (oldSectionText) oldSectionText.remove();
-    const textElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    textElem.setAttribute("class", "section-name-text");
-    textElem.setAttribute("x", "30");
-    textElem.setAttribute("y", "110"); // أسفل اسم المجموعة بقليل
-    textElem.setAttribute("fill", "#ffca28");
-    textElem.setAttribute("font-size", "28");
-    textElem.setAttribute("font-weight", "bold");
-    textElem.setAttribute("font-family", "Arial, sans-serif");
-    textElem.style.textShadow = "2px 2px 6px black";
-    textElem.style.pointerEvents = "none";
-    textElem.textContent = `Section ${sectionNum}`;
-    upperLayer.appendChild(textElem);
-    console.log(`🏷️ تم إضافة اسم السكشن: Section ${sectionNum}`);
+    if (currentSection) {
+        const textElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textElem.setAttribute("class", "section-name-text");
+        textElem.setAttribute("x", "30");
+        textElem.setAttribute("y", "110"); // أسفل اسم المجموعة بقليل
+        textElem.setAttribute("fill", "#ffca28");
+        textElem.setAttribute("font-size", "28");
+        textElem.setAttribute("font-weight", "bold");
+        textElem.setAttribute("font-family", "Arial, sans-serif");
+        textElem.style.textShadow = "2px 2px 6px black";
+        textElem.style.pointerEvents = "none";
+        textElem.textContent = `Section ${currentSection}`;
+        upperLayer.appendChild(textElem);
+        console.log(`🏷️ تم إضافة اسم السكشن: Section ${currentSection}`);
+    }
 }
 
 // ---------- عرض شاشة اختيار السكشن (إجباري) ----------
@@ -404,6 +406,10 @@ async function finishLoading() {
     updateDynamicSizes();
     scan();
     updateWoodInterface();
+    
+    // ✅ إضافة اسم السكشن
+    updateSectionName();
+    
     goToWood();
 
     const mainSvg = document.getElementById('main-svg');
@@ -413,6 +419,7 @@ async function finishLoading() {
         mainSvg.classList.add('loaded');
     }
     hideLoadingScreen();
+    console.log('🎉 اكتمل تحميل المجموعة والسكشن بنجاح');
 }
 
 export function updateDynamicSizes() {
