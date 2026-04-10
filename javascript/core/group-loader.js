@@ -240,7 +240,6 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             const child = svgRoot.children[0];
             if (child.tagName === 'g' || child.tagName === 'rect') {
                 child.classList.add('section-specific');
-                // إضافة لون خلفية مؤقت للمساعدة في التصحيح (يمكن إزالته لاحقاً)
                 if (child.tagName === 'rect' && !child.getAttribute('fill')) {
                     child.setAttribute('fill', 'rgba(255, 100, 0, 0.15)');
                 }
@@ -251,7 +250,7 @@ async function loadSectionSVG(groupLetter, sectionNum) {
 
         console.log(`✅ تم إضافة ${addedCount} عنصراً من السكشن ${sectionNum} إلى بداية الحاوية`);
 
-        // جمع الصور الجديدة التي قد تكون داخل السكشن
+        // جمع الصور الجديدة
         const newImages = groupContainer.querySelectorAll('image[data-src]');
         newImages.forEach(img => {
             const src = img.getAttribute('data-src');
@@ -261,19 +260,16 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             }
         });
 
-        // تحديث عدد خطوات التحميل ليشمل الصور الجديدة
+        // تحديث عدد خطوات التحميل
         const allToLoad = [...STATIC_IMAGES, ...imageUrlsToLoad];
         loadingProgress.totalSteps = allToLoad.length;
         updateLoadProgress();
 
-        // ===== إضافة النص فوق Upper_wood.webp مع مسح أي نصوص سابقة =====
+        // ===== إضافة النص فوق Upper_wood.webp =====
         const upperLayer = document.querySelector('#upper-wood-layer');
         if (upperLayer) {
-            // إزالة جميع عناصر text القديمة من الطبقة
             const allOldTexts = upperLayer.querySelectorAll('text');
             allOldTexts.forEach(text => text.remove());
-            
-            // إنشاء النص الجديد
             const textElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
             textElem.setAttribute("class", "section-name-text");
             textElem.setAttribute("x", "30");
@@ -324,7 +320,7 @@ export function updateWoodLogo(groupLetter) {
     dynamicGroup.appendChild(banner);
 }
 
-// ---------- عرض شاشة اختيار السكشن (إجباري) ----------
+// ---------- عرض شاشة اختيار السكشن ----------
 export async function showSectionSelection(groupLetter) {
     const groupSelectionScreen = document.getElementById('group-selection-screen');
     const sectionScreen = document.getElementById('section-selection-screen');
@@ -376,7 +372,7 @@ async function selectSection(sectionNum, groupLetter) {
     await initializeGroup(groupLetter, sectionNum);
 }
 
-// ---------- تهيئة المجموعة (تستقبل سكشن إجباري) ----------
+// ---------- تهيئة المجموعة ----------
 export async function initializeGroup(groupLetter, sectionNum) {
     if (!sectionNum) {
         console.error('❌ initializeGroup requires a section number');
@@ -441,20 +437,6 @@ export async function loadImages() {
     finishLoading();
 }
 
-// ===== دالة رفع المستطيلات إلى الأمام =====
-function bringRectsToFront() {
-    const groupContainer = document.getElementById('group-specific-content');
-    if (!groupContainer) return;
-    
-    const rects = Array.from(groupContainer.querySelectorAll('rect'));
-    if (rects.length === 0) return;
-    
-    rects.forEach(rect => {
-        groupContainer.appendChild(rect); // نقل المستطيل إلى النهاية
-    });
-    console.log(`🔼 تم رفع ${rects.length} مستطيل إلى الأمام`);
-}
-
 async function finishLoading() {
     loadingProgress.completedSteps = loadingProgress.totalSteps;
     loadingProgress.currentPercentage = 100;
@@ -465,10 +447,6 @@ async function finishLoading() {
 
     updateDynamicSizes();
     scan();
-    
-    // رفع جميع المستطيلات لتكون فوق الصور
-    bringRectsToFront();
-    
     updateWoodInterface();
     goToWood();
 
@@ -486,12 +464,10 @@ export function updateDynamicSizes() {
     const mainSvg = document.getElementById('main-svg');
     if (!mainSvg) return;
 
-    // البحث داخل mainSvg وأيضاً داخل group-specific-content (لأنه قد يحتوي على عناصر SVG)
     const groupContainer = document.getElementById('group-specific-content');
     let maxX = 0;
     let maxY = 2454;
 
-    // دالة مساعدة لحساب الحد الأقصى من عناصر معينة
     const processElements = (elements) => {
         elements.forEach(el => {
             let translateX = 0, translateY = 0;
@@ -518,8 +494,7 @@ export function updateDynamicSizes() {
                 y = parseFloat(el.getAttribute('y')) || 0;
                 width = parseFloat(el.getAttribute('width')) || 0;
                 height = parseFloat(el.getAttribute('height')) || 0;
-            } else if (el.tagName === 'g') {
-                // يمكن تخطي الـ g لأنه ليس له أبعاد مباشرة
+            } else {
                 return;
             }
             const totalX = translateX + x + width;
@@ -529,13 +504,11 @@ export function updateDynamicSizes() {
         });
     };
 
-    // معالجة العناصر داخل mainSvg
     const rectsInMain = mainSvg.querySelectorAll('rect');
     const imagesInMain = mainSvg.querySelectorAll('image');
     processElements(rectsInMain);
     processElements(imagesInMain);
 
-    // معالجة العناصر داخل groupContainer (التي قد تكون خارج mainSvg)
     if (groupContainer) {
         const rectsInGroup = groupContainer.querySelectorAll('rect');
         const imagesInGroup = groupContainer.querySelectorAll('image');
@@ -543,7 +516,6 @@ export function updateDynamicSizes() {
         processElements(imagesInGroup);
     }
 
-    // إضافة مسافة أمان بسيطة
     maxX += 50;
     maxY += 50;
     mainSvg.setAttribute('viewBox', `0 0 ${maxX} ${maxY}`);
