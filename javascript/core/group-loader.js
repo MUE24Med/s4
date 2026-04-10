@@ -256,27 +256,29 @@ export function updateWoodLogo(groupLetter) {
     dynamicGroup.appendChild(banner);
 }
 
-// ===== إضافة اسم السكشن فوق Upper_wood.webp =====
+// ===== إضافة النص المدمج (الجروب + السكشن) في نفس السطر =====
 function updateSectionName() {
     const upperLayer = document.querySelector('#upper-wood-layer');
     if (!upperLayer) return;
-    // إزالة اسم السكشن القديم فقط (نحتفظ باسم المجموعة)
-    const oldSectionText = upperLayer.querySelector('.section-name-text');
-    if (oldSectionText) oldSectionText.remove();
-    if (currentSection) {
+    
+    // إزالة أي نصوص سابقة (من wood-interface أو group-loader)
+    const oldTexts = upperLayer.querySelectorAll('.group-name-text, .section-name-text');
+    oldTexts.forEach(text => text.remove());
+    
+    if (currentGroup && currentSection) {
         const textElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
         textElem.setAttribute("class", "section-name-text");
         textElem.setAttribute("x", "30");
-        textElem.setAttribute("y", "110"); // أسفل اسم المجموعة بقليل
+        textElem.setAttribute("y", "60");  // نفس ارتفاع اسم الجروب
         textElem.setAttribute("fill", "#ffca28");
-        textElem.setAttribute("font-size", "28");
+        textElem.setAttribute("font-size", "32");
         textElem.setAttribute("font-weight", "bold");
         textElem.setAttribute("font-family", "Arial, sans-serif");
         textElem.style.textShadow = "2px 2px 6px black";
         textElem.style.pointerEvents = "none";
-        textElem.textContent = `Section ${currentSection}`;
+        textElem.textContent = `Group ${currentGroup} - Section ${currentSection}`;
         upperLayer.appendChild(textElem);
-        console.log(`🏷️ تم إضافة اسم السكشن: Section ${currentSection}`);
+        console.log(`🏷️ تم إضافة النص المدمج: Group ${currentGroup} - Section ${currentSection}`);
     }
 }
 
@@ -407,7 +409,7 @@ async function finishLoading() {
     scan();
     updateWoodInterface();
     
-    // ✅ إضافة اسم السكشن
+    // ✅ إضافة النص المدمج (الجروب + السكشن)
     updateSectionName();
     
     goToWood();
