@@ -1,10 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 
-<!-- الاسبوع الخامس -->
-<g transform="translate(5120,0)">
-  <image data-src="image/B/15/05.webp" width="1024" height="2454" />
+<!-- الاسبوع الأول -->
+<g transform="translate(1024,0)">
 
-  <!-- Monday 05 الإثنين -->
-  <g transform="translate(368,0)">
-    <rect x="0" y="1249" height="544" class="m w s" data-href="GIT/Practical/Physiology-01.pdf"/>
-</g> </g> </svg>
+</g> </svg>
