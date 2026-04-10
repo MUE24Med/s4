@@ -1,275 +1,90 @@
-/* ========================================
-   sw.js - Service Worker
-   ✅ محسّن: CACHE_NAME من URL param (متزامن مع index.html)
-   ======================================== */
+// ============================================
+// config.js - الثوابت والإعدادات العامة
+// ============================================
 
-// ✅ اقرأ اسم الكاش من URL بدل hardcode — يتطابق تلقائياً مع index.html
-const url = new URL(self.location.href);
-const CACHE_NAME = url.searchParams.get('v') || 'semester-4-cache-v1';
+export const REPO_NAME = "s4";
+export const GITHUB_USER = "MUE24Med";
 
-const urlsToCache = [
-    './',
-    './index.html',
-    './style.css',
-    './tracker.js',
-    './script.js',
-    './manifest.json',
-    './javascript/core/config.js',
-    './javascript/core/utils.js',
-    './javascript/core/navigation.js',
-    './javascript/core/group-loader.js',
-    './javascript/core/state.js',
-    // ===== الملفات الجديدة المقسمة =====
-    './javascript/core/loading-state.js',
-    './javascript/core/loading-ui.js',
-    './javascript/core/image-loader.js',
-    './javascript/core/svg-loader.js',
-    './javascript/core/layer-manager.js',
-    './javascript/core/dynamic-size.js',
-    './javascript/core/section-name.js',
-    // =================================
-    './javascript/ui/pdf-viewer.js',
-    './javascript/ui/wood-interface.js',
-    './javascript/ui/search-and-eye.js',
-    './javascript/ui/ui-controls.js',
-    './javascript/ui/scroll-system.js',
-    './javascript/features/leaderboard-core.js',
-    './javascript/features/mini-game.js',
-    './javascript/features/leaderboard-ui.js',
-    './javascript/features/preload-game.js',
-    './javascript/features/preload.js',
-    './javascript/features/svg-processor.js',
-    './image/wood.webp',
-    './image/Upper_wood.webp'
+export const NEW_API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents`;
+export const TREE_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/git/trees/main?recursive=1`;
+export const RAW_CONTENT_BASE = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/`;
+
+// ✅ CACHE_NAME يقرأ من sw.js عبر الـ Service Worker registration
+// لما تغير sw.js?v=... في index.html — config.js يتحدث تلقائياً
+export const CACHE_NAME = (() => {
+    try {
+        // لو في Service Worker نشط — اقرأ منه
+        const swUrl = navigator.serviceWorker?.controller?.scriptURL;
+        if (swUrl) {
+            const v = new URL(swUrl).searchParams.get('v');
+            if (v) return v;
+        }
+    } catch (_) {}
+    // fallback — اقرأ من localStorage لو اتحفظ قبل كده
+    return localStorage.getItem('sw_cache_name') || 'semester-4-cache-default';
+})();
+
+// الملفات المحمية (لا يتم تحديثها تلقائياً)
+export const PROTECTED_FILES = [
+    'image/0.webp',
+    'image/wood.webp',
+    'image/Upper_wood.webp',
+    'image/logo-A.webp',
+    'image/logo-B.webp',
+    'image/logo-C.webp',
+    'image/logo-D.webp'
 ];
 
-// ============================================================
-// INSTALL — تحميل متوازٍ بدل sequential
-// ============================================================
-self.addEventListener('install', event => {
-    console.log('🔧 SW: تثبيت الإصدار', CACHE_NAME);
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(cache =>
-            // ✅ كل الملفات بتتحمل في نفس الوقت
-            Promise.all(
-                urlsToCache.map(url =>
-                    fetch(url)
-                        .then(response => {
-                            if (!response || response.status !== 200) {
-                                console.warn(`⚠️ فشل تخزين (${response?.status ?? 'no response'}): ${url}`);
-                                return Promise.resolve();
-                            }
-                            return cache.put(url, response);
-                        })
-                        .catch(err => {
-                            console.warn(`⚠️ فشل تخزين: ${url}`, err.message);
-                            return Promise.resolve();
-                        })
-                )
-            )
-        ).then(() => {
-            console.log('✅ SW: تم التثبيت -', CACHE_NAME);
-            return self.skipWaiting();
-        })
-    );
-});
-
-// ============================================================
-// ACTIVATE — حذف الكاش القديم
-// ============================================================
-self.addEventListener('activate', event => {
-    console.log('🚀 SW: تفعيل الإصدار', CACHE_NAME);
-    event.waitUntil(
-        caches.keys().then(keys =>
-            Promise.all(
-                keys
-                    .filter(key => key !== CACHE_NAME)
-                    .map(key => {
-                        console.log(`🗑️ حذف كاش قديم: ${key}`);
-                        return caches.delete(key);
-                    })
-            )
-        ).then(() => {
-            console.log('✅ SW: تم التفعيل');
-            return self.clients.claim();
-        })
-    );
-});
-
-// ============================================================
-// FETCH — Cache First
-// ============================================================
-self.addEventListener('fetch', event => {
-    const url = new URL(event.request.url);
-
-    if (event.request.method !== 'GET') return;
-    if (url.pathname.includes('sw.js')) return;
-
-    const allowedOrigins = [
-        self.location.origin,
-        'raw.githubusercontent.com',
-        'api.github.com',
-        'cdnjs.cloudflare.com',
-        'mozilla.github.io'
-    ];
-    if (!allowedOrigins.some(o => url.origin.includes(o))) return;
-
-    event.respondWith(handleFetch(event.request));
-});
-
-async function handleFetch(request) {
-    const cached = await caches.match(request);
-
-    if (cached) {
-        // ✅ Background update — بس للـ HTML/CSS/JS مش الصور (توفير bandwidth)
-        if (shouldBackgroundUpdate(request.url)) {
-            updateCacheInBackground(request.clone());
-        }
-        return cached;
-    }
-
-    // مش في الكاش — جيب من الشبكة
-    try {
-        const response = await fetch(request);
-        if (shouldCache(request.url) && response && response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
-                cache.put(request, responseToCache).catch(() => {});
-            });
-        }
-        return response;
-    } catch (_err) {
-        if (request.destination === 'document') {
-            const fallback = await caches.match('./index.html');
-            return fallback || offlinePage();
-        }
-        return new Response('Offline', { status: 503 });
-    }
-}
-
-// ✅ Background update — بس للملفات اللي بتتغير (مش الصور والـ PDF)
-function updateCacheInBackground(requestClone) {
-    fetch(requestClone).then(response => {
-        if (response && response.status === 200) {
-            caches.open(CACHE_NAME).then(cache => {
-                cache.put(requestClone.url, response).catch(() => {});
-            });
-        }
-    }).catch(() => {});
-}
-
-// ============================================================
-// shouldCache — ما يُحفظ في الكاش
-// ============================================================
-function shouldCache(url) {
-    try {
-        const pathname = new URL(url).pathname;
-        if (pathname.includes('sw.js')) return false;
-        if (pathname.includes('/javascript/')) return true;
-        if (pathname.includes('/image/')) return true;
-        if (pathname.match(/\.(html|css|js|webp|png|jpg|jpeg|svg|pdf|json|woff2?)$/)) return true;
-        return false;
-    } catch (_) {
-        return false;
-    }
-}
-
-// ✅ Background update بس للملفات النصية — مش الصور والـ PDF (توفير bandwidth)
-function shouldBackgroundUpdate(url) {
-    try {
-        const pathname = new URL(url).pathname;
-        if (pathname.includes('sw.js')) return false;
-        if (pathname.match(/\.(webp|png|jpg|jpeg|pdf|woff2?)$/)) return false; // صور وملفات ثابتة — مش محتاجة update
-        if (pathname.match(/\.(html|css|js|json)$/)) return true;
-        if (pathname.includes('/javascript/')) return true;
-        return false;
-    } catch (_) {
-        return false;
-    }
-}
-
-// ============================================================
-// صفحة Offline الاحتياطية
-// ============================================================
-function offlinePage() {
-    return new Response(
-        `<!DOCTYPE html>
-        <html dir="rtl" lang="ar">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>وضع Offline</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    height: 100vh;
-                    margin: 0;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    text-align: center;
-                }
-                .container { max-width: 500px; padding: 40px; }
-                h1 { font-size: 48px; margin: 0; }
-                p { font-size: 18px; margin: 20px 0; }
-                button {
-                    background: white;
-                    color: #667eea;
-                    border: none;
-                    padding: 15px 30px;
-                    font-size: 16px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    margin-top: 20px;
-                }
-                button:hover { background: #f0f0f0; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>🔌 وضع Offline</h1>
-                <p>لا يوجد اتصال بالإنترنت</p>
-                <p>تأكد من اتصالك بالشبكة ثم حاول مرة أخرى</p>
-                <button onclick="location.reload()">🔄 إعادة المحاولة</button>
-            </div>
-        </body>
-        </html>`,
-        {
-            status: 503,
-            headers: {
-                'Content-Type': 'text/html; charset=utf-8',
-                'Cache-Control': 'no-cache'
-            }
-        }
+export function isProtectedFile(filename) {
+    return PROTECTED_FILES.some(protectedFile =>
+        filename.endsWith(protectedFile) || filename.includes(`/${protectedFile}`)
     );
 }
 
-// ============================================================
-// رسائل من الصفحة الرئيسية
-// ============================================================
-self.addEventListener('message', event => {
-    if (!event.data) return;
+// أسماء المواد للتصنيف
+export const SUBJECT_FOLDERS = [
+    'anatomy', 'histo', 'physio', 'bio',
+    'micro', 'para', 'pharma', 'patho'
+];
 
-    if (event.data.action === 'skipWaiting') {
-        console.log('⏭️ skipWaiting');
-        self.skipWaiting();
-    }
+// خريطة الترجمة للأسماء
+export const translationMap = {
+    'physio': 'فسيولوجي',
+    'anatomy': 'اناتومي',
+    'histo': 'هستولوجي',
+    'patho': 'باثولوجي',
+    'pharma': 'فارماكولوجي',
+    'micro': 'ميكروبيولوجي',
+    'para': 'باراسيتولوجي',
+    'section': 'سكشن',
+    'lecture': 'محاضرة',
+    'question': 'أسئلة',
+    'answer': 'إجابات',
+    'discussion': 'مناقشة',
+    'book': 'كتاب',
+    'rrs': 'جهاز تنفسي',
+    'uri': 'جهاز بولي',
+    'cvs': 'جهاز دوري',
+    'ipc': 'مهارات اتصال',
+    'bio': 'بيوكيميستري',
+    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+    '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9'
+};
 
-    if (event.data.action === 'clearCache') {
-        console.log('🗑️ مسح الكاش');
-        event.waitUntil(
-            caches.keys()
-                .then(names => Promise.all(names.map(n => caches.delete(n))))
-                .then(() => {
-                    console.log('✅ تم مسح الكاش');
-                    self.clients.matchAll().then(clients =>
-                        clients.forEach(c => c.postMessage({ type: 'CACHE_CLEARED' }))
-                    );
-                })
-        );
-    }
-});
+// حالات التنقل
+export const NAV_STATE = {
+    GROUP_SELECTION: 'group_selection',
+    WOOD_VIEW: 'wood_view',
+    MAP_VIEW: 'map_view',
+    PDF_VIEW: 'pdf_view'
+};
 
-console.log(`%c✅ SW v2.3 - الكاش: ${CACHE_NAME}`, 'color:#00ff00;font-weight:bold;');
+// رابط Formspree للعبة
+export const FORMSPREE_URL = "https://formspree.io/f/xzdpqrnj";
+
+// ممرات اللعبة
+export const lanes = [20, 50, 80];
+
+// إعدادات اللمس
+export const TAP_THRESHOLD_MS = 300;
+export const isTouchDevice = window.matchMedia('(hover: none)').matches;
