@@ -7,7 +7,6 @@ import { resetBrowserZoom } from './utils.js';
 import { pushNavigationState, goToWood } from './navigation.js';
 import { setCurrentGroup, setCurrentFolder, setGlobalFileTree, globalFileTree, currentGroup, currentFolder, setCurrentSection, currentSection } from './state.js';
 
-// استيراد الوحدات المقسمة
 import { showLoadingScreen, hideLoadingScreen, updateLoadProgress } from './loading-ui.js';
 import { loadImages, clearImageUrls } from './image-loader.js';
 import { loadGroupSVG, loadSectionSVG } from './svg-loader.js';
@@ -16,7 +15,6 @@ import { updateDynamicSizes } from './dynamic-size.js';
 import { updateSectionName } from './section-name.js';
 import { loadingProgress } from './loading-state.js';
 
-// ---------- شجرة الملفات ----------
 export async function fetchGlobalTree() {
     if (globalFileTree.length > 0) return;
     try {
@@ -63,7 +61,6 @@ export function updateWoodLogo(groupLetter) {
     dynamicGroup.appendChild(banner);
 }
 
-// ---------- عرض شاشة اختيار السكشن ----------
 export async function showSectionSelection(groupLetter) {
     const groupSelectionScreen = document.getElementById('group-selection-screen');
     const sectionScreen = document.getElementById('section-selection-screen');
@@ -115,7 +112,6 @@ async function selectSection(sectionNum, groupLetter) {
     await initializeGroup(groupLetter, sectionNum);
 }
 
-// ---------- تهيئة المجموعة ----------
 export async function initializeGroup(groupLetter, sectionNum) {
     if (!sectionNum) {
         console.error('❌ initializeGroup requires a section number');
@@ -159,7 +155,6 @@ export async function initializeGroup(groupLetter, sectionNum) {
 
     updateDynamicSizes();
     
-    // تحميل الصور ثم إنهاء التحميل
     await new Promise((resolve) => {
         loadImages(() => {
             finishLoading(groupLetter, sectionNum);
@@ -179,13 +174,10 @@ async function finishLoading(groupLetter, sectionNum) {
     updateDynamicSizes();
     scan();
     
-    // تطبيق أولويات الطبقات (بدون نقل العناصر خارج مجموعاتها)
     hideOverlappingGroupImages();
-    bringSectionRectsToFront();   // فقط مستطيلات السكشن تُرفع إلى الأمام
+    bringSectionRectsToFront();
     
-    // إضافة اسم السكشن
     updateSectionName(groupLetter, sectionNum);
-    
     updateWoodInterface();
     goToWood();
 
@@ -199,7 +191,6 @@ async function finishLoading(groupLetter, sectionNum) {
     console.log('🎉 اكتمل تحميل المجموعة والسكشن بنجاح');
 }
 
-// ---------- تحميل آخر مجموعة محفوظة ----------
 export function loadSelectedGroup() {
     const saved = localStorage.getItem('selectedGroup');
     if (saved && /^[A-D]$/.test(saved)) {
