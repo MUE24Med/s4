@@ -3,7 +3,7 @@
 // ============================================
 
 import { CACHE_NAME } from './config.js';
-import { addImageUrl, clearImageUrls, loadingProgress } from './loading-state.js';
+import { addImageUrl, clearImageUrls, loadingProgress, imageUrlsToLoad } from './loading-state.js';
 import { updateLoadProgress } from './loading-ui.js';
 import { STATIC_IMAGES } from './image-loader.js';
 
