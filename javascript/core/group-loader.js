@@ -266,6 +266,29 @@ async function loadSectionSVG(groupLetter, sectionNum) {
         loadingProgress.totalSteps = allToLoad.length;
         updateLoadProgress();
 
+        // ===== إضافة النص فوق Upper_wood.webp مع مسح أي نصوص سابقة =====
+        const upperLayer = document.querySelector('#upper-wood-layer');
+        if (upperLayer) {
+            // إزالة جميع عناصر text القديمة من الطبقة
+            const allOldTexts = upperLayer.querySelectorAll('text');
+            allOldTexts.forEach(text => text.remove());
+            
+            // إنشاء النص الجديد
+            const textElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            textElem.setAttribute("class", "section-name-text");
+            textElem.setAttribute("x", "30");
+            textElem.setAttribute("y", "80");
+            textElem.setAttribute("fill", "#ffca28");
+            textElem.setAttribute("font-size", "40");
+            textElem.setAttribute("font-weight", "bold");
+            textElem.setAttribute("font-family", "Arial, sans-serif");
+            textElem.style.textShadow = "2px 2px 6px black";
+            textElem.style.pointerEvents = "none";
+            textElem.textContent = `Group ${groupLetter} - Section ${sectionNum}`;
+            upperLayer.appendChild(textElem);
+            console.log(`🏷️ تم تحديث النص: Group ${groupLetter} - Section ${sectionNum}`);
+        }
+
     } catch (err) {
         console.error(`❌ خطأ فادح في تحميل SVG السكشن ${sectionNum}:`, err);
     }
@@ -418,6 +441,20 @@ export async function loadImages() {
     finishLoading();
 }
 
+// ===== دالة رفع المستطيلات إلى الأمام =====
+function bringRectsToFront() {
+    const groupContainer = document.getElementById('group-specific-content');
+    if (!groupContainer) return;
+    
+    const rects = Array.from(groupContainer.querySelectorAll('rect'));
+    if (rects.length === 0) return;
+    
+    rects.forEach(rect => {
+        groupContainer.appendChild(rect); // نقل المستطيل إلى النهاية
+    });
+    console.log(`🔼 تم رفع ${rects.length} مستطيل إلى الأمام`);
+}
+
 async function finishLoading() {
     loadingProgress.completedSteps = loadingProgress.totalSteps;
     loadingProgress.currentPercentage = 100;
@@ -428,6 +465,10 @@ async function finishLoading() {
 
     updateDynamicSizes();
     scan();
+    
+    // رفع جميع المستطيلات لتكون فوق الصور
+    bringRectsToFront();
+    
     updateWoodInterface();
     goToWood();
 
