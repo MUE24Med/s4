@@ -151,12 +151,25 @@ export function processRect(r) {
 
     const colorClasses = ['q', 'v', 'i', 'a', 's', 'l', 'is'];
     const hasColor = colorClasses.some(c => r.classList.contains(c));
+
+    // ✅ إجبار المستطيل على الظهور والتفاعل
+    r.style.visibility = 'visible';
+    r.style.pointerEvents = 'all';
+    // زيادة سمك الحدود مؤقتاً للتأكد من رؤيتها (يمكنك تعديله لاحقاً)
+    r.style.strokeWidth = '4px';
+    // خلفية شفافة خفيفة جداً للتأكد من موقع المستطيل (اختياري، يمكن حذفه)
+    r.style.fill = 'rgba(0, 255, 0, 0.05)';
+
     if (!hasColor) {
+        // المستطيلات بدون لون (غير تفاعلية) نخفيها تماماً
         r.style.visibility = 'hidden';
         r.style.pointerEvents = 'none';
         r.setAttribute('data-processed', 'true');
         return;
     }
+
+    // تسجيل للمساعدة في التصحيح
+    console.log(`✅ معالجة مستطيل ملون: ${r.getAttribute('data-href') || 'بدون رابط'}`, r);
 
     if (r.classList.contains('w')) r.setAttribute('width', '113.5');
     if (r.classList.contains('hw')) r.setAttribute('width', '56.75');
