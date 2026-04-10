@@ -290,6 +290,17 @@ async function loadSectionSVG(groupLetter, sectionNum) {
     }
 }
 
+// ---------- نقل جميع الصور إلى الخلف (أسفل الترتيب) ----------
+function sendImagesToBack() {
+    const groupContainer = document.getElementById('group-specific-content');
+    if (!groupContainer) return;
+    const images = Array.from(groupContainer.querySelectorAll('image[data-src]'));
+    images.forEach(img => {
+        groupContainer.insertBefore(img, groupContainer.firstChild);
+    });
+    console.log(`🔽 تم نقل ${images.length} صورة إلى الخلف (أسفل المستطيلات)`);
+}
+
 export function updateWoodLogo(groupLetter) {
     const dynamicGroup = document.getElementById('dynamic-links-group');
     if (!dynamicGroup) return;
@@ -447,6 +458,10 @@ async function finishLoading() {
 
     updateDynamicSizes();
     scan();
+    
+    // نقل الصور إلى الخلف لضمان ظهور المستطيلات فوقها
+    sendImagesToBack();
+    
     updateWoodInterface();
     goToWood();
 
