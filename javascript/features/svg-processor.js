@@ -3,23 +3,21 @@
 // ============================================
 
 import { RAW_CONTENT_BASE, isTouchDevice, TAP_THRESHOLD_MS } from '../core/config.js';
-import * as woodInterface from '../ui/wood-interface.js'; // ✅ استيراد كامل للموديول
+import * as woodInterface from '../ui/wood-interface.js';
 import { getCumulativeTranslate, getGroupImage, wrapText, addShownError, hasShownError } from '../core/utils.js';
 import { smartOpen } from '../ui/pdf-viewer.js';
+import { updateDynamicSizes } from '../core/dynamic-size.js';  // ✅ استيراد صحيح
 
-// ✅ getter يقرأ القيمة الحالية من الموديول في كل مرة
 function isInteractionEnabled() {
     return woodInterface.interactionEnabled;
 }
 
-// حالة التكبير الحالية
 export let activeState = {
     rect: null, zoomPart: null, zoomText: null, zoomBg: null,
     baseText: null, baseBg: null, animationId: null, clipPathId: null,
     touchStartTime: 0, initialScrollLeft: 0
 };
 
-// ---------- تنظيف تأثير الهوفر ----------
 export function cleanupHover() {
     if (!activeState.rect) return;
     if (activeState.animationId) clearInterval(activeState.animationId);
@@ -39,9 +37,7 @@ export function cleanupHover() {
     });
 }
 
-// ---------- إيجاد أقرب صورة خلفية للمستطيل ----------
 function findNearestBackgroundImage(rect) {
-    // البحث في نفس المجموعة أو المجموعات الأب
     let parent = rect.parentElement;
     const groupContainer = document.getElementById('group-specific-content');
     while (parent && parent !== groupContainer && parent !== document.body) {
@@ -49,13 +45,11 @@ function findNearestBackgroundImage(rect) {
         if (img) return img;
         parent = parent.parentElement;
     }
-    // إذا لم يجد، خذ أول صورة في الحاوية (آخر صورة خلفية)
     const allImages = groupContainer ? groupContainer.querySelectorAll('image[data-src]') : [];
     if (allImages.length > 0) return allImages[allImages.length - 1];
     return null;
 }
 
-// ---------- بدء تأثير الهوفر ----------
 export function startHover() {
     if (!isInteractionEnabled() || this.classList.contains('list-item')) return;
     const mainSvg = document.getElementById('main-svg');
@@ -85,9 +79,7 @@ export function startHover() {
     rect.style.transform = `scale(${scaleFactor})`;
     rect.style.strokeWidth = '4px';
 
-    // محاولة العثور على صورة خلفية مناسبة
     let bgImage = findNearestBackgroundImage(rect);
-    // إذا لم توجد، استخدم الطريقة القديمة getGroupImage (للمستطيلات داخل نفس مجموعة الصورة)
     if (!bgImage) {
         const oldImgData = getGroupImage(rect);
         if (oldImgData && oldImgData.src) {
@@ -182,11 +174,9 @@ export function startHover() {
     }, 100);
 }
 
-// ---------- معالجة مستطيل واحد ----------
 export function processRect(r) {
     if (r.hasAttribute('data-processed')) return;
 
-    // ✅ تجاهل المستطيلات بدون كلاس لون
     const colorClasses = ['q', 'v', 'i', 'a', 's', 'l', 'is'];
     const hasColor = colorClasses.some(c => r.classList.contains(c));
     if (!hasColor) {
@@ -195,6 +185,9 @@ export function processRect(r) {
         r.setAttribute('data-processed', 'true');
         return;
     }
+
+    r.style.visibility = 'visible';
+    r.style.pointerEvents = 'auto';
 
     if (r.classList.contains('w')) r.setAttribute('width', '113.5');
     if (r.classList.contains('hw')) r.setAttribute('width', '56.75');
@@ -303,7 +296,6 @@ export function processRect(r) {
     r.setAttribute('data-processed', 'true');
 }
 
-// ---------- مسح جميع المستطيلات ومعالجتها ----------
 export function scan() {
     const mainSvg = document.getElementById('main-svg');
     if (!mainSvg) return;
@@ -345,9 +337,7 @@ export function scan() {
             });
             if (hasNewElements) {
                 console.log('🔄 تم اكتشاف عناصر جديدة - تحديث viewBox');
-                import('../core/group-loader.js').then(({ updateDynamicSizes }) => {
-                    updateDynamicSizes();
-                });
+                updateDynamicSizes();  // ✅ أصبحت معرفة
             }
         });
 
