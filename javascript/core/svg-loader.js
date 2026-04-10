@@ -36,14 +36,13 @@ export async function loadGroupSVG(groupLetter) {
             groupContainer.innerHTML = match[1];
             console.log(`✅ تم تحميل الجروب ${groupLetter}، عدد العناصر: ${groupContainer.children.length}`);
             
-            // تمييز صور الجروب
             const groupImages = groupContainer.querySelectorAll('image[data-src]');
             groupImages.forEach(img => {
                 img.classList.add('group-image');
             });
             
-            const injectedImages = groupContainer.querySelectorAll('image[data-src]');
             clearImageUrls();
+            const injectedImages = groupContainer.querySelectorAll('image[data-src]');
             injectedImages.forEach(img => {
                 const src = img.getAttribute('data-src');
                 if (!src) return;
