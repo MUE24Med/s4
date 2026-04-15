@@ -3,6 +3,13 @@
 // ============================================
 
 import { RAW_CONTENT_BASE, NAV_STATE, SUBJECT_FOLDERS, REPO_NAME } from '../core/config.js';
+// داخل initWoodUI
+import { setupOrientationLockButton } from './ui-controls.js'; // تأكد من وجود الاستيراد في أعلى الملف
+
+export function initWoodUI() {
+    // ... الكود الموجود ...
+    setupOrientationLockButton(); // <-- أضف هذا السطر
+}
 import { normalizeArabic, autoTranslate, getDisplayName, resetBrowserZoom } from '../core/utils.js';
 import { pushNavigationState, goToWood, getCurrentNavigationState, navigationHistory } from '../core/navigation.js';
 import { smartOpen } from './pdf-viewer.js';
