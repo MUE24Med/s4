@@ -1,15 +1,9 @@
 // ============================================
 // wood-interface.js - واجهة عرض الملفات والمجلدات
+// مع إضافة زر قفل الاتجاه (Screen Orientation Lock)
 // ============================================
 
 import { RAW_CONTENT_BASE, NAV_STATE, SUBJECT_FOLDERS, REPO_NAME } from '../core/config.js';
-// داخل initWoodUI
-import { setupOrientationLockButton } from './ui-controls.js'; // تأكد من وجود الاستيراد في أعلى الملف
-
-export function initWoodUI() {
-    // ... الكود الموجود ...
-    setupOrientationLockButton(); // <-- أضف هذا السطر
-}
 import { normalizeArabic, autoTranslate, getDisplayName, resetBrowserZoom } from '../core/utils.js';
 import { pushNavigationState, goToWood, getCurrentNavigationState, navigationHistory } from '../core/navigation.js';
 import { smartOpen } from './pdf-viewer.js';
@@ -37,6 +31,183 @@ export function setInteractionEnabled(value) {
     console.log('🔄 Hover:', value ? 'مفعّل ✅' : 'معطّل ❌');
 }
 
+// ============================================
+// دوال قفل الاتجاه (Orientation Lock)
+// ============================================
+
+async function lockScreenToLandscape() {
+    if (!screen.orientation || typeof screen.orientation.lock !== 'function') {
+        alert('❌ متصفحك لا يدعم قفل اتجاه الشاشة.\nيمكنك تفعيل الدوران من إعدادات النظام.');
+        return;
+    }
+
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && !location.hostname.startsWith('127.0.0.1')) {
+        alert('❌ قفل الشاشة يعمل فقط عبر HTTPS.\nالموقع الحالي غير آمن لهذه الميزة.');
+        return;
+    }
+
+    try {
+        await screen.orientation.lock('landscape');
+        console.log('✅ تم قفل الشاشة في الوضع الأفقي');
+
+        const btn = document.getElementById('orientation-lock-btn');
+        if (btn) {
+            btn.textContent = '🔓 حرر';
+            btn.title = 'إلغاء قفل الاتجاه';
+            btn.style.background = 'rgba(46, 204, 113, 0.3)';
+            btn.style.border = '1px solid #2ecc71';
+            // تبديل المستمع
+            btn.removeEventListener('click', lockScreenToLandscape);
+            btn.addEventListener('click', unlockScreenOrientation);
+        }
+
+        localStorage.setItem('orientation_locked', 'true');
+        showTemporaryMessage('✅ تم تثبيت الشاشة أفقياً', '#2ecc71');
+    } catch (error) {
+        console.error('❌ فشل قفل الاتجاه:', error);
+        let errorMsg = 'لا يمكن قفل الشاشة حالياً.';
+        if (error.name === 'NotAllowedError') {
+            errorMsg = 'يجب أن تكون هناك نقرة مستخدم مباشرة (مثل زر) لتشغيل هذه الميزة.';
+        } else if (error.name === 'SecurityError') {
+            errorMsg = 'الميزة غير متاحة على هذا الجهاز أو المتصفح.';
+        }
+        alert(`❌ ${errorMsg}`);
+        showTemporaryMessage('❌ فشل تثبيت الاتجاه', '#e74c3c');
+    }
+}
+
+async function unlockScreenOrientation() {
+    if (!screen.orientation || typeof screen.orientation.unlock !== 'function') {
+        alert('❌ لا يمكن إلغاء القفل في هذا المتصفح.');
+        return;
+    }
+
+    try {
+        screen.orientation.unlock();
+        console.log('🔓 تم إلغاء قفل الاتجاه');
+
+        const btn = document.getElementById('orientation-lock-btn');
+        if (btn) {
+            btn.textContent = '🔒 أفقي';
+            btn.title = 'قفل الشاشة في الوضع الأفقي';
+            btn.style.background = 'rgba(255, 255, 255, 0.05)';
+            btn.style.border = 'none';
+            btn.removeEventListener('click', unlockScreenOrientation);
+            btn.addEventListener('click', lockScreenToLandscape);
+        }
+
+        localStorage.removeItem('orientation_locked');
+        showTemporaryMessage('🔓 تم إلغاء التثبيت', '#f39c12');
+    } catch (error) {
+        console.error('❌ فشل إلغاء القفل:', error);
+        alert('❌ لا يمكن إلغاء القفل حالياً.');
+    }
+}
+
+function showTemporaryMessage(message, color) {
+    let msgDiv = document.getElementById('orientation-temp-msg');
+    if (!msgDiv) {
+        msgDiv = document.createElement('div');
+        msgDiv.id = 'orientation-temp-msg';
+        msgDiv.style.position = 'fixed';
+        msgDiv.style.bottom = '80px';
+        msgDiv.style.left = '50%';
+        msgDiv.style.transform = 'translateX(-50%)';
+        msgDiv.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        msgDiv.style.color = '#fff';
+        msgDiv.style.padding = '8px 16px';
+        msgDiv.style.borderRadius = '20px';
+        msgDiv.style.fontSize = '14px';
+        msgDiv.style.zIndex = '10000';
+        msgDiv.style.backdropFilter = 'blur(5px)';
+        msgDiv.style.border = `1px solid ${color}`;
+        msgDiv.style.direction = 'rtl';
+        document.body.appendChild(msgDiv);
+    }
+    msgDiv.textContent = message;
+    msgDiv.style.borderColor = color;
+    msgDiv.style.display = 'block';
+    setTimeout(() => {
+        msgDiv.style.display = 'none';
+    }, 2000);
+}
+
+export function setupOrientationLockButton() {
+    let lockBtn = document.getElementById('orientation-lock-btn');
+    if (!lockBtn) {
+        const toggleContainer = document.getElementById('js-toggle-container');
+        if (!toggleContainer) {
+            console.warn('⚠️ لم يتم العثور على حاوية الأزرار');
+            return;
+        }
+
+        const controlsRow = toggleContainer.querySelector('.controls-row');
+        if (!controlsRow) {
+            console.warn('⚠️ لم يتم العثور على controls-row');
+            return;
+        }
+
+        lockBtn = document.createElement('span');
+        lockBtn.id = 'orientation-lock-btn';
+        lockBtn.textContent = '🔒 أفقي';
+        lockBtn.title = 'قفل الشاشة في الوضع الأفقي';
+        lockBtn.style.cursor = 'pointer';
+        lockBtn.style.padding = '6px';
+        lockBtn.style.fontSize = '14px';
+        lockBtn.style.opacity = '0.8';
+        lockBtn.style.display = 'flex';
+        lockBtn.style.alignItems = 'center';
+        lockBtn.style.justifyContent = 'center';
+        lockBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+        lockBtn.style.borderRadius = '8px';
+        lockBtn.style.minWidth = '32px';
+        lockBtn.style.minHeight = '32px';
+        lockBtn.style.transition = 'all 0.2s ease';
+
+        const hoverContainer = controlsRow.querySelector('.hover-toggle-container');
+        if (hoverContainer) {
+            controlsRow.insertBefore(lockBtn, hoverContainer);
+        } else {
+            controlsRow.appendChild(lockBtn);
+        }
+
+        lockBtn.addEventListener('mouseenter', () => {
+            lockBtn.style.opacity = '1';
+            lockBtn.style.transform = 'scale(1.1)';
+            lockBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+        });
+        lockBtn.addEventListener('mouseleave', () => {
+            lockBtn.style.opacity = '0.8';
+            lockBtn.style.transform = 'scale(1)';
+            lockBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+        });
+    }
+
+    // إزالة المستمع القديم وإعادة إضافته
+    const newLockBtn = lockBtn.cloneNode(true);
+    lockBtn.parentNode?.replaceChild(newLockBtn, lockBtn);
+
+    newLockBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await lockScreenToLandscape();
+    });
+}
+
+export function restoreOrientationLock() {
+    const wasLocked = localStorage.getItem('orientation_locked') === 'true';
+    if (wasLocked && screen.orientation && typeof screen.orientation.lock === 'function') {
+        const btn = document.getElementById('orientation-lock-btn');
+        if (btn) {
+            btn.textContent = '🔓 حرر';
+            btn.title = 'إلغاء قفل الاتجاه';
+            btn.style.background = 'rgba(46, 204, 113, 0.3)';
+            btn.style.border = '1px solid #2ecc71';
+            btn.removeEventListener('click', lockScreenToLandscape);
+            btn.addEventListener('click', unlockScreenOrientation);
+        }
+    }
+}
+
 // ---------- تحديث واجهة الخشب ----------
 export async function updateWoodInterface() {
     const dynamicGroup = document.getElementById('dynamic-links-group');
@@ -54,11 +225,9 @@ export async function updateWoodInterface() {
     // ===== إضافة اسم المجموعة فوق Upper_wood.webp (فقط إذا لم يكن هناك سكشن نشط) =====
     const upperLayer = document.querySelector('#upper-wood-layer');
     if (upperLayer) {
-        // إزالة أي نص قديم خاص بالمجموعة (نترك النص المدمج إن وجد)
         const oldGroupText = upperLayer.querySelector('.group-name-text');
         if (oldGroupText) oldGroupText.remove();
-        
-        // إذا لم يكن هناك سكشن نشط، أضف اسم المجموعة فقط
+
         if (currentGroup && !currentSection) {
             const groupText = document.createElementNS("http://www.w3.org/2000/svg", "text");
             groupText.setAttribute("class", "group-name-text");
@@ -639,26 +808,9 @@ export function initWoodUI() {
     setupInteractionToggle();
     setupSearchInput(updateWoodInterface);
     setupEyeToggleSystem();
-
-    // ✅ إنشاء زر التثبيت — يُضاف لـ main-svg مباشرة كآخر عنصر
     setupInstallButton();
-}
 
-// استعادة حالة القفل عند تحميل الصفحة
-export function restoreOrientationLock() {
-    const wasLocked = localStorage.getItem('orientation_locked') === 'true';
-    if (wasLocked && screen.orientation && typeof screen.orientation.lock === 'function') {
-        // لا نستطيع القفل تلقائياً بدون تفاعل المستخدم، لكن نغير مظهر الزر فقط
-        const btn = document.getElementById('orientation-lock-btn');
-        if (btn) {
-            btn.textContent = '🔓 حرر';
-            btn.title = 'إلغاء قفل الاتجاه';
-            btn.style.background = 'rgba(46, 204, 113, 0.3)';
-            btn.style.border = '1px solid #2ecc71';
-            // تبديل المستمع
-            const oldListener = lockScreenToLandscape;
-            btn.removeEventListener('click', oldListener);
-            btn.addEventListener('click', unlockScreenOrientation);
-        }
-    }
+    // ✅ إضافة زر قفل الاتجاه واستعادة حالته السابقة
+    setupOrientationLockButton();
+    restoreOrientationLock();
 }
