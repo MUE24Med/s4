@@ -643,3 +643,22 @@ export function initWoodUI() {
     // ✅ إنشاء زر التثبيت — يُضاف لـ main-svg مباشرة كآخر عنصر
     setupInstallButton();
 }
+
+// استعادة حالة القفل عند تحميل الصفحة
+export function restoreOrientationLock() {
+    const wasLocked = localStorage.getItem('orientation_locked') === 'true';
+    if (wasLocked && screen.orientation && typeof screen.orientation.lock === 'function') {
+        // لا نستطيع القفل تلقائياً بدون تفاعل المستخدم، لكن نغير مظهر الزر فقط
+        const btn = document.getElementById('orientation-lock-btn');
+        if (btn) {
+            btn.textContent = '🔓 حرر';
+            btn.title = 'إلغاء قفل الاتجاه';
+            btn.style.background = 'rgba(46, 204, 113, 0.3)';
+            btn.style.border = '1px solid #2ecc71';
+            // تبديل المستمع
+            const oldListener = lockScreenToLandscape;
+            btn.removeEventListener('click', oldListener);
+            btn.addEventListener('click', unlockScreenOrientation);
+        }
+    }
+}
