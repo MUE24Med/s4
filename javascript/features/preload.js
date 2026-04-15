@@ -33,10 +33,6 @@ const FILES_TO_LOAD = [
     './javascript/features/leaderboard-ui.js',
     './javascript/features/mini-game.js',
 
-    // ───── صور ثابتة ─────
-    './image/wood.webp',
-    './image/Upper_wood.webp',
-
     // ───── PDF.js (مكتبة خارجية) ─────
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
