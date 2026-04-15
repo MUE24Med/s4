@@ -1,6 +1,6 @@
 // ============================================
 // wood-interface.js - واجهة عرض الملفات والمجلدات
-// مع إضافة زر تبديل الاتجاه (Portrait/Landscape) في أعلى اليمين
+// مع زر تبديل الاتجاه (إرشادي) + إصلاح تكرار اسم السكشن
 // ============================================
 
 import { RAW_CONTENT_BASE, NAV_STATE, SUBJECT_FOLDERS, REPO_NAME } from '../core/config.js';
@@ -32,49 +32,34 @@ export function setInteractionEnabled(value) {
 }
 
 // ============================================
-// دوال تبديل الاتجاه (Portrait / Landscape)
+// دوال تبديل الاتجاه (إرشادية - بدون قفل إجباري)
 // ============================================
 
-let currentOrientation = 'portrait'; // portrait or landscape
+let currentOrientationMode = localStorage.getItem('user_orientation_mode') || 'portrait'; // 'portrait' or 'landscape'
 
-async function toggleScreenOrientation() {
-    if (!screen.orientation || typeof screen.orientation.lock !== 'function') {
-        alert('❌ متصفحك لا يدعم تغيير اتجاه الشاشة تلقائياً.\nيمكنك تغيير الاتجاه يدوياً من إعدادات النظام.');
-        return;
-    }
-
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && !location.hostname.startsWith('127.0.0.1')) {
-        alert('❌ تغيير الاتجاه يعمل فقط عبر HTTPS.\nالموقع الحالي غير آمن لهذه الميزة.');
-        return;
-    }
-
-    try {
-        const newOrientation = currentOrientation === 'portrait' ? 'landscape' : 'portrait';
-        await screen.orientation.lock(newOrientation);
-        currentOrientation = newOrientation;
-        console.log(`✅ تم تغيير الاتجاه إلى ${newOrientation === 'landscape' ? 'أفقي' : 'طولي'}`);
-        
-        // تحديث نص الزر
-        const orientationBtn = document.getElementById('orientation-toggle-svg-btn');
-        if (orientationBtn) {
-            const textElem = orientationBtn.querySelector('text');
-            if (textElem) {
-                textElem.textContent = currentOrientation === 'portrait' ? '🔄 أفقي' : '🔄 طولي';
-            }
+function showOrientationGuide() {
+    const isLandscape = window.innerWidth > window.innerHeight;
+    const targetMode = currentOrientationMode === 'portrait' ? 'landscape' : 'portrait';
+    const targetText = targetMode === 'landscape' ? 'الأفقي' : 'العمودي';
+    
+    // رسالة توجيهية للمستخدم
+    alert(`📱 لتبديل الشاشة إلى الوضع ${targetText}:\n\n1️⃣ افتح إعدادات سريعة (اسحب من أعلى الشاشة)\n2️⃣ قم بإلغاء قفل الدوران (Auto-rotate)\n3️⃣ أدر الهاتف أفقيًا/عموديًا يدويًا\n\n🔄 بعد التبديل، اضغط على الزر مرة أخرى لتغيير النص.`);
+    
+    // تبديل الحالة المحلية فقط (لتغيير نص الزر)
+    currentOrientationMode = targetMode;
+    localStorage.setItem('user_orientation_mode', currentOrientationMode);
+    
+    // تحديث نص الزر
+    const orientationBtn = document.getElementById('orientation-toggle-svg-btn');
+    if (orientationBtn) {
+        const textElem = orientationBtn.querySelector('text');
+        if (textElem) {
+            textElem.textContent = currentOrientationMode === 'portrait' ? '🔄 أفقي' : '🔄 طولي';
         }
-        
-        showTemporaryOrientationMsg(`✅ تم التبديل إلى الوضع ${newOrientation === 'landscape' ? 'الأفقي' : 'الطولي'}`, '#2ecc71');
-    } catch (error) {
-        console.error('❌ فشل تغيير الاتجاه:', error);
-        let errorMsg = 'لا يمكن تغيير الاتجاه حالياً.';
-        if (error.name === 'NotAllowedError') {
-            errorMsg = 'يجب أن تكون هناك نقرة مستخدم مباشرة لتشغيل هذه الميزة.';
-        } else if (error.name === 'SecurityError') {
-            errorMsg = 'الميزة غير متاحة على هذا الجهاز أو المتصفح.';
-        }
-        alert(`❌ ${errorMsg}`);
-        showTemporaryOrientationMsg(`❌ ${errorMsg}`, '#e74c3c');
     }
+    
+    // رسالة تأكيد صغيرة
+    showTemporaryOrientationMsg(`✅ تم تبديل وضع الزر إلى ${currentOrientationMode === 'portrait' ? 'أفقي' : 'طولي'}`, '#2ecc71');
 }
 
 function showTemporaryOrientationMsg(message, color) {
@@ -102,7 +87,7 @@ function showTemporaryOrientationMsg(message, color) {
     msgDiv.style.display = 'block';
     setTimeout(() => {
         msgDiv.style.display = 'none';
-    }, 2000);
+    }, 2500);
 }
 
 function createOrientationToggleButtonInUpperLayer() {
@@ -122,12 +107,12 @@ function createOrientationToggleButtonInUpperLayer() {
     
     // خلفية الزر (مستطيل)
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', '820');      // يمين الشاشة تقريباً (عرض SVG 1024)
-    rect.setAttribute('y', '20');       // أعلى الصفحة
+    rect.setAttribute('x', '820');
+    rect.setAttribute('y', '20');
     rect.setAttribute('width', '140');
     rect.setAttribute('height', '40');
     rect.setAttribute('rx', '20');
-    rect.setAttribute('fill', '#000000cc'); // شفاف قليلاً
+    rect.setAttribute('fill', '#000000cc');
     rect.setAttribute('stroke', '#ffcc00');
     rect.setAttribute('stroke-width', '2');
     
@@ -141,7 +126,8 @@ function createOrientationToggleButtonInUpperLayer() {
     text.setAttribute('font-weight', 'bold');
     text.setAttribute('font-size', '18px');
     text.setAttribute('font-family', 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif');
-    text.textContent = '🔄 أفقي';
+    // تعيين النص بناءً على الحالة المخزنة
+    text.textContent = currentOrientationMode === 'portrait' ? '🔄 أفقي' : '🔄 طولي';
     
     btnGroup.appendChild(rect);
     btnGroup.appendChild(text);
@@ -149,14 +135,14 @@ function createOrientationToggleButtonInUpperLayer() {
     // إضافة مستمع الحدث
     btnGroup.addEventListener('click', (e) => {
         e.stopPropagation();
-        toggleScreenOrientation();
+        showOrientationGuide();
     });
     
     upperLayer.appendChild(btnGroup);
-    console.log('✅ زر تبديل الاتجاه مضاف إلى upper-wood-layer (اليمين العلوي)');
+    console.log('✅ زر تبديل الاتجاه (إرشادي) مضاف إلى أعلى اليمين');
 }
 
-// ---------- تحديث واجهة الخشب ----------
+// ---------- تحديث واجهة الخشب (مع إصلاح تكرار اسم السكشن) ----------
 export async function updateWoodInterface() {
     const dynamicGroup = document.getElementById('dynamic-links-group');
     const backBtnText = document.getElementById('back-btn-text');
@@ -170,14 +156,13 @@ export async function updateWoodInterface() {
     dynamicGroup.querySelectorAll('.wood-folder-group, .wood-file-group, .scroll-container-group, .subject-separator-group, .scroll-bar-group, .window-frame')
         .forEach(el => el.remove());
 
-    // ===== إضافة اسم المجموعة / السكشن في upper-wood-layer =====
+    // ===== إضافة اسم المجموعة / السكشن في upper-wood-layer (بدون تكرار) =====
     const upperLayer = document.querySelector('#upper-wood-layer');
     if (upperLayer) {
-        // إزالة أي نص قديم خاص بالمجموعة (نترك النص المدمج إن وجد)
-        const oldGroupText = upperLayer.querySelector('.group-name-text');
-        if (oldGroupText) oldGroupText.remove();
+        // إزالة أي نصوص سابقة خاصة بالمجموعة (باستثناء زر الاتجاه)
+        const oldTexts = upperLayer.querySelectorAll('.group-name-text, .section-name-text');
+        oldTexts.forEach(el => el.remove());
         
-        // إضافة اسم المجموعة أو السكشن
         let displayText = '';
         if (currentSection && currentGroup) {
             displayText = `Group ${currentGroup} - Section ${currentSection}`;
@@ -767,6 +752,6 @@ export function initWoodUI() {
     setupEyeToggleSystem();
     setupInstallButton();
 
-    // ✅ إضافة زر تبديل الاتجاه في أعلى اليمين (مقابل اسم السكشن)
+    // ✅ إضافة زر تبديل الاتجاه (إرشادي) في أعلى اليمين
     createOrientationToggleButtonInUpperLayer();
 }
