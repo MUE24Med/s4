@@ -141,14 +141,15 @@
     <!-- Tuesday 06 الثلاثاء -->
     <g transform="translate(484,0)">
         <rect x="0" y="344"  height="488" class="m w" data-href="5"/>
-         <rect x="0" y="834"  height="521" class="m w l" data-href="GIT/Lecture/lectures of 2nd week/Physiology-03.pdf"/>
-        <rect x="0" y="1355" height="433" class="m w l" data-href="GIT/Lecture/lectures of 2nd week/Anatomy-02.pdf"/>
+         <rect x="0" y="834"  height="521" class="m w l" data-href="GIT/Lecture/2nd week/Physiology-03.pdf"/>
+        <rect x="0" y="1355" height="433" class="m w l" data-href="GIT/Lecture/2nd week/Anatomy-02.pdf"/>
         <rect x="0" y="1789" height="465" class="m w" data-href="8"/>
     </g>
 
     <!-- Wednesday 06 الأربع -->
     <g transform="translate(598,0)">
-        <rect x="0" y="344"  height="367" class="m w" data-href="9"/>
+        <rect x="0" y="344"  height="367" class="m w l" data-href="GIT/Lecture/2nd week/Diseases of the Oral Cavity, Salivary Glands DR.OMNIA.pdf"/>
+
         <rect x="0" y="832"  height="521" class="m w" data-href="10"/>
     </g>
 
