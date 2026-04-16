@@ -17,6 +17,7 @@ const urlsToCache = [
     './javascript/core/config.js',
     './javascript/core/utils.js',
     './javascript/core/navigation.js',
+    './javascript/core/lazy-images.js',
     './javascript/core/group-loader.js',
     './javascript/core/state.js',
     './javascript/ui/pdf-viewer.js',
