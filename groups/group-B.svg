@@ -164,6 +164,23 @@
 <!-- الاسبوع السابع -->
 <g transform="translate(7168,0)">
     <image data-src="image/B/07.webp" width="1024" height="2454" />
-
+<!-- Saturday 07 -->
+<g transform="translate(140,0)" >
+</g>
+<!-- Sunday 07 -->
+<g transform="translate(253,0)" >
+</g>
+<!-- Monday 07 -->
+<g transform="translate(368,0)" >
+</g>
+<!-- Tuesday 07 -->
+<g transform="translate(484,0)" >
+</g>
+<!-- Wednesday 07 -->
+<g transform="translate(598,0)" >
+</g>
+<!-- Thursday 07 -->
+<g transform="translate(713,0)" >
+</g>
 </g>
 </svg>
