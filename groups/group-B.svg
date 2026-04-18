@@ -95,23 +95,23 @@
     <!-- Sunday 05 الأحد -->
     <g transform="translate(253,0)">
         <rect x="0" y="321"  height="438" class="m w" data-href="GIT/Practical/Anatomy-01.pdf"/>
-        <rect x="0" y="758"  height="503" class="m w l" data-href="GIT/Lecture/Microbiology-01.pdf"/>
+        <rect x="0" y="758"  height="503" class="m w l" data-href="GIT/1nd week/Lecture/Microbiology-01.pdf"/>
         <rect x="0" y="1260" height="534" class="m w" data-href="GIT/Practical/Histology-01.pdf"/>
         <rect x="0" y="1795" height="406" class="m w" data-href="ipc"/>
     </g>
 
     <!-- Monday 05 الإثنين -->
     <g transform="translate(368,0)">
-        <rect x="0" y="322"  height="328" class="m w l" data-href="GIT/Lecture/Histology-01.pdf"/>
+        <rect x="0" y="322"  height="328" class="m w l" data-href="GIT/Lecture/1nd week/Histology-01.pdf"/>
         <rect x="0" y="1249" height="544" class="m w s" data-href="GIT/Practical/1st week/2 ed. section 1 GIT jundice.pdf"/>
-        <rect x="0" y="1794" height="406" class="m w l" data-href="GIT/Lecture/Anatomy-01.pdf"/>
+        <rect x="0" y="1794" height="406" class="m w l" data-href="GIT/Lecture/1nd week/Anatomy-01.pdf"/>
         <rect x="0" y="2222" height="79"  class="m w" data-href="9"/>
     </g>
 
     <!-- Tuesday 05 الثلاثاء -->
     <g transform="translate(484,0)">
         <rect x="0" y="758"  height="503" class="m w" data-href="10"/>
-        <rect x="0" y="1794" height="407" class="m w l" data-href="GIT/Lecture/Biochemistry-01.pdf"/>
+        <rect x="0" y="1794" height="407" class="m w l" data-href="GIT/Lecture/1nd week/Biochemistry-01.pdf"/>
     </g>
 
     <!-- Thursday 05 الخميس -->
