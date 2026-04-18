@@ -164,23 +164,35 @@
 <!-- الاسبوع السابع -->
 <g transform="translate(7168,0)">
     <image data-src="image/B/07.webp" width="1024" height="2454" />
-<!-- Saturday 07 -->
+<!-- Saturday 07 السبت -->
 <g transform="translate(140,0)" >
+<rect x="0" y="1294" height="490" class="m w" data-href="1"/>
+<rect x="0" y="1785" height="464" class="m w" data-href="3"/>
 </g>
-<!-- Sunday 07 -->
+<!-- Sunday 07 الأحد -->
 <g transform="translate(253,0)" >
 </g>
-<!-- Monday 07 -->
+<!-- Monday 07 الإثنين -->
 <g transform="translate(368,0)" >
+<rect x="0" y="347"  height="481" class="m w" data-href="4"/>
+<rect x="0" y="1292" height="492" class="m w" data-href="5"/>
+<rect x="0" y="1785" height="462" class="m w" data-href="6"/>
 </g>
-<!-- Tuesday 07 -->
+<!-- Tuesday 07 الثلاثاء -->
 <g transform="translate(484,0)" >
+<rect x="0" y="346"  height="373" class="m w" data-href="8"/>
+<rect x="0" y="1061" height="349" class="m w" data-href="9"/>
+<rect x="0" y="1413" height="370" class="m w" data-href="10"/>
 </g>
-<!-- Wednesday 07 -->
+<!-- Wednesday 07 الأربع -->
 <g transform="translate(598,0)" >
+<rect x="0" y="347"  height="483" class="m w" data-href="11"/>
+<rect x="0" y="1063" height="348" class="m w" data-href="12"/>
+<rect x="0" y="1413" height="372" class="m w" data-href="13"/>
 </g>
-<!-- Thursday 07 -->
+<!-- Thursday 07 الخميس -->
 <g transform="translate(713,0)" >
+<rect x="0" y="829"  height="463" class="m w" data-href="14"/>
 </g>
 </g>
 </svg>
