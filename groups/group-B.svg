@@ -166,7 +166,7 @@
     <image data-src="image/B/07.webp" width="1024" height="2454" />
 <!-- Saturday 07 السبت -->
 <g transform="translate(140,0)" >
-<rect x="0" y="1294" height="490" class="m w" data-href="GIT/Lecture/3nd week/Anatomy-3.pdf"/>
+<rect x="0" y="1294" height="490" class="m w l" data-href="GIT/Lecture/3nd week/Anatomy-3.pdf"/>
 <rect x="0" y="1785" height="464" class="m w" data-href="3"/>
 </g>
 <!-- Sunday 07 الأحد -->
