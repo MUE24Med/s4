@@ -160,8 +160,10 @@
         <rect x="0" y="832"  height="523" class="m w s" data-href="GIT/Practical/2nd week/Parasitology-01.pdf"/>
 
         <rect x="0" y="1355" height="432" class="m w" data-href="13"/>
-    </g>
+</g></g>
+<!-- الاسبوع السابع -->
+<g transform="translate(7168,0)">
+    <image data-src="image/B/07.webp" width="1024" height="2454" />
 
 </g>
-
 </svg>
