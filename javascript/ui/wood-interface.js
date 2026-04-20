@@ -362,7 +362,8 @@ export async function updateWoodInterface() {
                     }
                 }
 
-                if (isDir && name !== 'image' && name !== 'groups' && name !== 'javascript') {
+                // ✅ إضافة مجلد 'sections' إلى قائمة المجلدات المخفية
+                if (isDir && name !== 'image' && name !== 'groups' && name !== 'javascript' && name !== 'sections') {
                     itemsMap.set(name, {
                         name: name,
                         type: 'dir',
