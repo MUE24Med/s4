@@ -17,49 +17,38 @@ import { setCurrentGroup, setCurrentSection } from './javascript/core/state.js';
 // منع تدوير الشاشة - قفل دائم على الوضع الرأسي
 // ============================================
 async function lockToPortrait() {
-    // التحقق من HTTPS (مطلوب لـ Screen Orientation API)
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && !location.hostname.startsWith('127.0.0.1')) {
-        console.warn('⚠️ لا يمكن قفل الاتجاه بدون HTTPS');
-        return false;
-    }
-
     // التحقق من دعم API
     if (!screen.orientation || typeof screen.orientation.lock !== 'function') {
-        console.warn('⚠️ Screen Orientation API غير مدعوم في هذا المتصفح');
         return false;
     }
 
     try {
+        // المتصفح يشترط الدخول في fullscreen أولاً عند التشغيل كتبويب عادي
+        if (!document.fullscreenElement) {
+            await document.documentElement.requestFullscreen().catch(() => {});
+        }
         await screen.orientation.lock('portrait');
         console.log('✅ تم قفل الشاشة على الوضع الرأسي (Portrait)');
         return true;
     } catch (err) {
-        console.warn('❌ فشل قفل الشاشة:', err.message);
+        // فشل صامت - يعمل فقط في وضع standalone بعد تثبيت التطبيق
         return false;
     }
 }
 
 // دالة لإعداد القفل عند أول تفاعل
 function setupOrientationLock() {
-    // محاولة القفل فوراً إذا كان هناك تفاعل سابق (نادر)
-    if (document.hasFocus() && !document.hidden) {
-        setTimeout(lockToPortrait, 100);
-    }
-
-    // إضافة مستمع لأول نقرة أو لمسة من المستخدم
     const lockOnFirstInteraction = async (e) => {
-        const success = await lockToPortrait();
-        if (success) {
-            // إزالة المستمعات بعد النجاح
-            document.removeEventListener('click', lockOnFirstInteraction);
-            document.removeEventListener('touchstart', lockOnFirstInteraction);
-            document.removeEventListener('keydown', lockOnFirstInteraction);
-        }
+        // إزالة المستمعات فوراً بغض النظر عن النتيجة (لمنع تكرار المحاولة)
+        document.removeEventListener('click', lockOnFirstInteraction);
+        document.removeEventListener('touchstart', lockOnFirstInteraction);
+        document.removeEventListener('keydown', lockOnFirstInteraction);
+        await lockToPortrait();
     };
 
-    document.addEventListener('click', lockOnFirstInteraction, { once: false });
-    document.addEventListener('touchstart', lockOnFirstInteraction, { once: false });
-    document.addEventListener('keydown', lockOnFirstInteraction, { once: false });
+    document.addEventListener('click', lockOnFirstInteraction);
+    document.addEventListener('touchstart', lockOnFirstInteraction);
+    document.addEventListener('keydown', lockOnFirstInteraction);
 }
 
 // ============================================
@@ -191,9 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ✅ إضافة قفل الشاشة على الوضع الرأسي (Portrait) عند أول تفاعل
     setupOrientationLock();
 
-    // ✅ عند تثبيت التطبيق (PWA) نحاول القفل أيضاً (لأنه قد يكون حدث قبل أول تفاعل)
+    // ✅ عند تثبيت التطبيق (PWA) نحاول القفل أيضاً
     window.addEventListener('appinstalled', () => {
-        console.log('📱 تم تثبيت التطبيق، محاولة قفل الشاشة...');
         setTimeout(lockToPortrait, 500);
     });
 
