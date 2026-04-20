@@ -33,7 +33,21 @@
   <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
   <link rel="preconnect" href="https://api.github.com" crossorigin>
   <link rel="dns-prefetch" href="https://mozilla.github.io">
+<!-- في قسم <head> بعد روابط preload -->
 
+<!-- Preload Critical Assets with crossorigin -->
+<link rel="preload" href="style.css" as="style">
+<link rel="preload" href="script.js" as="script" crossorigin="anonymous">
+<link rel="preload" href="javascript/core/config.js" as="script" crossorigin="anonymous">
+<link rel="preload" href="javascript/features/preload-game.js" as="script" crossorigin="anonymous">
+<link rel="preload" href="image/wood.webp" as="image" type="image/webp">
+<link rel="preload" href="image/Upper_wood.webp" as="image" type="image/webp">
+
+<!-- Modulepreload also needs crossorigin -->
+<link rel="modulepreload" href="javascript/ui/wood-interface.js" crossorigin="anonymous">
+<link rel="modulepreload" href="javascript/core/state.js" crossorigin="anonymous">
+<link rel="modulepreload" href="javascript/features/svg-processor.js" crossorigin="anonymous">
+<link rel="modulepreload" href="javascript/ui/pdf-viewer.js" crossorigin="anonymous">
   <!-- Preload Critical Assets -->
   <link rel="preload" href="style.css" as="style">
   <link rel="preload" href="script.js" as="script">
