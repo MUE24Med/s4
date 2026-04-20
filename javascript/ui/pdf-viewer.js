@@ -2,16 +2,17 @@
 // pdf-viewer.js - معاينة PDF وفتحه بطرق متعددة
 // مع تحسين جودة المعاينة ومعالجة أخطاء أفضل
 // وإضافة زر عين قابل للسحب داخل PDF
+// يقوم بإخفاء/إظهار شريط الأدوات بالكامل وتوسيع عرض PDF
 // ============================================
 
 import { RAW_CONTENT_BASE, NAV_STATE } from '../core/config.js';
 import { pushNavigationState, popNavigationState } from '../core/navigation.js';
 import { resetBrowserZoom } from '../core/utils.js';
-import { setPDFOpen } from '../core/back-button.js'; // ✅ استيراد دالة تحديث حالة PDF
+import { setPDFOpen } from '../core/back-button.js';
 
 export let currentPreviewItem = null;
 export let isToolbarExpanded = false;
-export let isPdfToolbarHidden = false; // حالة إخفاء شريط أدوات PDF
+export let isPdfToolbarHidden = false; // حالة إخفاء شريط الأدوات
 
 // متغيرات السحب للزر
 let dragActive = false;
@@ -35,7 +36,6 @@ export async function showPDFPreview(item) {
     const fileName = item.path.split('/').pop();
     const url = `${RAW_CONTENT_BASE}${item.path}`;
 
-    // إظهار النافذة
     popup.classList.remove('hidden');
     popup.style.display = 'flex';
 
@@ -44,7 +44,6 @@ export async function showPDFPreview(item) {
     loading.style.display = 'block';
     canvas.style.display = 'none';
 
-    // إزالة أي صورة معاينة قديمة
     const oldImg = popup.querySelector('img[alt^="معاينة"]');
     if (oldImg) oldImg.remove();
 
@@ -69,7 +68,6 @@ export async function showPDFPreview(item) {
             throw new Error('PDF.js غير محمل');
         }
 
-        // تحميل PDF مع إعدادات أفضل للتوافق
         const loadingTask = pdfjsLib.getDocument({
             url: url,
             cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
@@ -82,19 +80,16 @@ export async function showPDFPreview(item) {
         const pdf = await loadingTask.promise;
         console.log('📄 PDF محمل:', pdf.numPages, 'صفحة');
 
-        // استخدام scale أعلى للحصول على صورة أوضح
         const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 2.0 }); // زيادة الدقة
+        const viewport = page.getViewport({ scale: 2.0 });
 
-        // ضبط أبعاد canvas
         canvas.width = viewport.width;
         canvas.height = viewport.height;
 
-        const context = canvas.getContext('2d', { alpha: false }); // خلفية غير شفافة للأداء
+        const context = canvas.getContext('2d', { alpha: false });
         context.fillStyle = 'white';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // رسم الصفحة
         const renderContext = {
             canvasContext: context,
             viewport: viewport,
@@ -104,10 +99,7 @@ export async function showPDFPreview(item) {
 
         await page.render(renderContext).promise;
 
-        // تحويل canvas إلى صورة PNG بجودة عالية
-        const imgData = canvas.toDataURL('image/png', 1.0); // جودة 100%
-
-        // إنشاء عنصر img لعرض الصورة
+        const imgData = canvas.toDataURL('image/png', 1.0);
         const previewImg = document.createElement('img');
         previewImg.src = imgData;
         previewImg.style.width = '100%';
@@ -119,7 +111,6 @@ export async function showPDFPreview(item) {
         previewImg.style.borderRadius = '4px';
         previewImg.alt = `معاينة الصفحة الأولى من ${fileName}`;
 
-        // إخفاء canvas وإضافة الصورة
         canvas.style.display = 'none';
         canvas.parentNode.appendChild(previewImg);
 
@@ -132,7 +123,6 @@ export async function showPDFPreview(item) {
         console.error('❌ خطأ في المعاينة:', error);
         loading.textContent = '❌ فشل تحميل المعاينة';
 
-        // عرض رسالة خطأ بديلة
         const errorMsg = document.createElement('div');
         errorMsg.style.color = 'red';
         errorMsg.style.padding = '20px';
@@ -201,7 +191,6 @@ export function showOpenOptions(item) {
 
     console.log('📋 عرض خيارات الفتح:', url);
 
-    // تحميل معاينة مصغرة في الخلفية (بنفس الطريقة المحسنة ولكن بدقة أقل)
     if (canvas) {
         (async () => {
             try {
@@ -220,7 +209,7 @@ export function showOpenOptions(item) {
 
                 const pdf = await loadingTask.promise;
                 const page = await pdf.getPage(1);
-                const viewport = page.getViewport({ scale: 1.5 }); // دقة متوسطة للمعاينة المصغرة
+                const viewport = page.getViewport({ scale: 1.5 });
 
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
@@ -271,7 +260,6 @@ export function openWithMozilla(item) {
 
     const overlay = document.getElementById("pdf-overlay");
     const pdfViewer = document.getElementById("pdfFrame");
-    const toolbar = document.getElementById('toolbar');
     const eyeBtn = document.getElementById('pdf-eye-draggable');
 
     if (!overlay || !pdfViewer) {
@@ -282,20 +270,19 @@ export function openWithMozilla(item) {
     overlay.classList.remove("hidden");
     overlay.style.display = 'flex';
 
-    // إعادة تعيين حالة شريط الأدوات إلى الظاهر
-    if (toolbar && eyeBtn) {
-        toolbar.style.display = 'flex';
+    // إعادة تعيين حالة شريط الأدوات إلى الظاهر (إزالة كلاس toolbar-hidden)
+    overlay.classList.remove('toolbar-hidden');
+    if (eyeBtn) {
         eyeBtn.classList.remove('active');
         eyeBtn.title = 'إخفاء شريط الأدوات';
-        isPdfToolbarHidden = false;
     }
+    isPdfToolbarHidden = false;
 
     resetBrowserZoom();
 
     pdfViewer.src = "https://mozilla.github.io/pdf.js/web/viewer.html?file=" +
         encodeURIComponent(url) + "#zoom=page-fit";
 
-    // ✅ تحديث حالة PDF مفتوح
     setPDFOpen(true);
 
     if (typeof trackSvgOpen === 'function') {
@@ -324,10 +311,6 @@ export function openWithDrive(item) {
     console.log('💾 فتح بـ Google Drive:', driveUrl);
 }
 
-// ✅ الإصلاح: فتح PDF بطريقة متوافقة مع Chrome و Samsung Browser و Edge
-// - Chrome: window.open بيرجع null أو شاشة سوداء لو مفيش user gesture مباشر
-// - Samsung Browser: بيسأل عن درايف أو تحميل لأن ما بيعرفش يفتح PDF inline
-// - الحل: نستخدم <a> tag مع click() مباشرة — ده بيتعامل معاه كـ user gesture حقيقي
 export function openWithBrowser(item) {
     if (!item) {
         console.error('❌ openWithBrowser: item is null');
@@ -336,12 +319,10 @@ export function openWithBrowser(item) {
 
     const url = `${RAW_CONTENT_BASE}${item.path}`;
 
-    // استخدام <a> tag بدل window.open — أكثر توافقاً مع جميع المتصفحات
     const a = document.createElement('a');
     a.href = url;
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
-    // لا نضع a.download حتى لا نجبر التحميل — نترك المتصفح يقرر (عرض أو تحميل)
     document.body.appendChild(a);
     a.click();
     setTimeout(() => document.body.removeChild(a), 100);
@@ -373,21 +354,21 @@ export function toggleMozillaToolbar() {
     }
 }
 
-// دالة لتبديل إخفاء/إظهار شريط أدوات PDF
+// ✅ دالة لتبديل إخفاء/إظهار شريط الأدوات بالكامل وتوسيع الـ iframe
 export function togglePdfToolbar() {
-    const toolbar = document.getElementById('toolbar');
+    const overlay = document.getElementById('pdf-overlay');
     const eyeBtn = document.getElementById('pdf-eye-draggable');
 
-    if (!toolbar || !eyeBtn) return;
+    if (!overlay || !eyeBtn) return;
 
     isPdfToolbarHidden = !isPdfToolbarHidden;
 
     if (isPdfToolbarHidden) {
-        toolbar.style.display = 'none';
+        overlay.classList.add('toolbar-hidden');
         eyeBtn.classList.add('active');
         eyeBtn.title = 'إظهار شريط الأدوات';
     } else {
-        toolbar.style.display = 'flex';
+        overlay.classList.remove('toolbar-hidden');
         eyeBtn.classList.remove('active');
         eyeBtn.title = 'إخفاء شريط الأدوات';
     }
@@ -556,13 +537,19 @@ export function initPDFViewer() {
             if (pdfOverlay) {
                 pdfOverlay.classList.add('hidden');
                 pdfOverlay.style.display = 'none';
+                // إزالة كلاس toolbar-hidden عند الإغلاق
+                pdfOverlay.classList.remove('toolbar-hidden');
             }
             if (pdfFrame) pdfFrame.src = '';
             resetBrowserZoom();
             popNavigationState();
-
-            // ✅ تحديث حالة PDF مغلق
             setPDFOpen(false);
+            // إعادة تعيين حالة زر العين
+            if (pdfEyeDraggable) {
+                pdfEyeDraggable.classList.remove('active');
+                pdfEyeDraggable.title = 'إخفاء شريط الأدوات';
+            }
+            isPdfToolbarHidden = false;
         });
     }
 
@@ -621,6 +608,7 @@ export function initPDFViewer() {
         window.addEventListener('touchend', stopDrag);
         window.addEventListener('touchcancel', stopDrag);
 
+        // النقر العادي (بدون سحب) لتبديل شريط الأدوات
         pdfEyeDraggable.addEventListener('click', (e) => {
             if (!dragActive) {
                 togglePdfToolbar();
@@ -628,5 +616,5 @@ export function initPDFViewer() {
         });
     }
 
-    console.log('✅ معالجات المعاينة والفتح جاهزة');
+    console.log('✅ معالجات المعاينة والفتح جاهزة (زر العين يخفي/يظهر شريط الأدوات بالكامل)');
 }
