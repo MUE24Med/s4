@@ -33,34 +33,20 @@
   <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
   <link rel="preconnect" href="https://api.github.com" crossorigin>
   <link rel="dns-prefetch" href="https://mozilla.github.io">
-<!-- في قسم <head> بعد روابط preload -->
 
-<!-- Preload Critical Assets with crossorigin -->
-<link rel="preload" href="style.css" as="style">
-<link rel="preload" href="script.js" as="script" crossorigin="anonymous">
-<link rel="preload" href="javascript/core/config.js" as="script" crossorigin="anonymous">
-<link rel="preload" href="javascript/features/preload-game.js" as="script" crossorigin="anonymous">
-<link rel="preload" href="image/wood.webp" as="image" type="image/webp">
-<link rel="preload" href="image/Upper_wood.webp" as="image" type="image/webp">
-
-<!-- Modulepreload also needs crossorigin -->
-<link rel="modulepreload" href="javascript/ui/wood-interface.js" crossorigin="anonymous">
-<link rel="modulepreload" href="javascript/core/state.js" crossorigin="anonymous">
-<link rel="modulepreload" href="javascript/features/svg-processor.js" crossorigin="anonymous">
-<link rel="modulepreload" href="javascript/ui/pdf-viewer.js" crossorigin="anonymous">
-  <!-- Preload Critical Assets -->
+  <!-- Preload Critical Assets with crossorigin -->
   <link rel="preload" href="style.css" as="style">
-  <link rel="preload" href="script.js" as="script">
-  <link rel="preload" href="javascript/core/config.js" as="script">
-  <link rel="preload" href="javascript/features/preload-game.js" as="script">
+  <link rel="preload" href="script.js" as="script" crossorigin="anonymous">
+  <link rel="preload" href="javascript/core/config.js" as="script" crossorigin="anonymous">
+  <link rel="preload" href="javascript/features/preload-game.js" as="script" crossorigin="anonymous">
   <link rel="preload" href="image/wood.webp" as="image" type="image/webp">
   <link rel="preload" href="image/Upper_wood.webp" as="image" type="image/webp">
 
-  <!-- Modulepreload for frequently imported modules -->
-  <link rel="modulepreload" href="javascript/ui/wood-interface.js">
-  <link rel="modulepreload" href="javascript/core/state.js">
-  <link rel="modulepreload" href="javascript/features/svg-processor.js">
-  <link rel="modulepreload" href="javascript/ui/pdf-viewer.js">
+  <!-- Modulepreload with crossorigin -->
+  <link rel="modulepreload" href="javascript/ui/wood-interface.js" crossorigin="anonymous">
+  <link rel="modulepreload" href="javascript/core/state.js" crossorigin="anonymous">
+  <link rel="modulepreload" href="javascript/features/svg-processor.js" crossorigin="anonymous">
+  <link rel="modulepreload" href="javascript/ui/pdf-viewer.js" crossorigin="anonymous">
 
   <!-- Icons -->
   <link rel="icon" type="image/png" href="image/0.png">
@@ -295,7 +281,7 @@
     </div>
   </div>
   <div id="pdf-eye-draggable" class="pdf-eye-draggable" title="إخفاء/إظهار شريط الأدوات">👁️</div>
-  <iframe id="pdfFrame" src="" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+  <iframe id="pdfFrame" src="" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads"></iframe>
 </div>
 
 <!-- نافذة معاينة PDF -->
