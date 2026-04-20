@@ -1,6 +1,6 @@
 // ============================================
 // wood-interface.js - واجهة عرض الملفات والمجلدات
-// مع زر تبديل الاتجاه (فعال) + إصلاح تكرار اسم السكشن
+// مع زر تبديل الاتجاه (فعال + دعم fullscreen)
 // ============================================
 
 import { RAW_CONTENT_BASE, NAV_STATE, SUBJECT_FOLDERS, REPO_NAME } from '../core/config.js';
@@ -32,7 +32,7 @@ export function setInteractionEnabled(value) {
 }
 
 // ============================================
-// زر تبديل الاتجاه الفعال (أفقي/رأسي)
+// زر تبديل الاتجاه الفعال (مع دعم fullscreen)
 // ============================================
 
 let currentLockedOrientation = null; // null, 'landscape', 'portrait'
@@ -77,6 +77,32 @@ function showOrientationMessage(message, isError = false) {
     }, 2500);
 }
 
+async function requestFullscreen() {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        try {
+            await elem.requestFullscreen();
+            return true;
+        } catch (err) {
+            console.warn('فشل طلب fullscreen:', err);
+            return false;
+        }
+    }
+    return false;
+}
+
+async function exitFullscreen() {
+    if (document.exitFullscreen) {
+        try {
+            await document.exitFullscreen();
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+    return false;
+}
+
 async function lockScreenTo(orientation) {
     if (!screen.orientation || typeof screen.orientation.lock !== 'function') {
         showOrientationMessage('❌ متصفحك لا يدعم قفل الاتجاه', true);
@@ -86,6 +112,7 @@ async function lockScreenTo(orientation) {
         showOrientationMessage('❌ قفل الاتجاه يتطلب HTTPS', true);
         return false;
     }
+
     try {
         await screen.orientation.lock(orientation);
         currentLockedOrientation = orientation;
@@ -93,6 +120,27 @@ async function lockScreenTo(orientation) {
         return true;
     } catch (err) {
         console.error('فشل قفل الاتجاه:', err);
+        
+        if (err.message && err.message.includes('fullscreen')) {
+            showOrientationMessage('⏳ جاري طلب ملء الشاشة أولاً...', false);
+            const fullscreenSuccess = await requestFullscreen();
+            if (fullscreenSuccess) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                try {
+                    await screen.orientation.lock(orientation);
+                    currentLockedOrientation = orientation;
+                    showOrientationMessage(`✅ تم تثبيت الشاشة ${orientation === 'landscape' ? 'أفقياً' : 'عمودياً'} بعد ملء الشاشة`);
+                    return true;
+                } catch (err2) {
+                    showOrientationMessage(`❌ لا يمكن قفل الاتجاه حتى بعد ملء الشاشة: ${err2.message}`, true);
+                    return false;
+                }
+            } else {
+                showOrientationMessage('❌ لا يمكن طلب ملء الشاشة. قد يكون المتصفح لا يسمح بذلك.', true);
+                return false;
+            }
+        }
+        
         let errorMsg = 'لا يمكن تغيير الاتجاه حالياً.';
         if (err.name === 'NotAllowedError') {
             errorMsg = 'يجب النقر على الزر أولاً (تفاعل مباشر)';
@@ -111,8 +159,11 @@ function unlockScreen() {
     }
     try {
         screen.orientation.unlock();
+        if (document.fullscreenElement) {
+            exitFullscreen().catch(console.warn);
+        }
         currentLockedOrientation = null;
-        console.log('🔓 تم إلغاء قفل الاتجاه');
+        showOrientationMessage('🔓 تم إلغاء القفل، يمكنك تدوير الجهاز يدوياً');
         return true;
     } catch (err) {
         console.warn('فشل إلغاء القفل:', err);
@@ -122,18 +173,8 @@ function unlockScreen() {
 
 async function toggleOrientation() {
     if (currentLockedOrientation) {
-        const unlocked = unlockScreen();
-        if (unlocked) {
-            showOrientationMessage('🔓 تم إلغاء القفل، يمكنك تدوير الجهاز يدوياً');
-            updateOrientationButtonText();
-        } else {
-            const newOrientation = currentLockedOrientation === 'landscape' ? 'portrait' : 'landscape';
-            const success = await lockScreenTo(newOrientation);
-            if (success) {
-                showOrientationMessage(`✅ تم التبديل إلى الوضع ${newOrientation === 'landscape' ? 'الأفقي' : 'الرأسي'}`);
-                updateOrientationButtonText();
-            }
-        }
+        await unlockScreen();
+        updateOrientationButtonText();
         return;
     }
 
@@ -141,8 +182,6 @@ async function toggleOrientation() {
     const targetOrientation = isLandscape ? 'landscape' : 'portrait';
     const success = await lockScreenTo(targetOrientation);
     if (success) {
-        const msg = targetOrientation === 'landscape' ? 'تم تثبيت الشاشة أفقياً' : 'تم تثبيت الشاشة عمودياً';
-        showOrientationMessage(`✅ ${msg}`);
         updateOrientationButtonText();
     }
 }
@@ -206,20 +245,17 @@ function createOrientationToggleButtonInUpperLayer() {
     btnGroup.addEventListener('click', async (e) => {
         e.stopPropagation();
         await toggleOrientation();
-        updateOrientationButtonText();
     });
     
     upperLayer.appendChild(btnGroup);
-    console.log('✅ زر تبديل الاتجاه (فعال) مضاف إلى أعلى اليمين');
+    console.log('✅ زر تبديل الاتجاه (مع دعم fullscreen) مضاف');
 
     window.addEventListener('resize', () => {
-        if (!currentLockedOrientation) {
-            updateOrientationButtonText();
-        }
+        if (!currentLockedOrientation) updateOrientationButtonText();
     });
 }
 
-// ---------- تحديث واجهة الخشب (مع إصلاح تكرار اسم السكشن) ----------
+// ---------- تحديث واجهة الخشب ----------
 export async function updateWoodInterface() {
     const dynamicGroup = document.getElementById('dynamic-links-group');
     const backBtnText = document.getElementById('back-btn-text');
@@ -229,11 +265,9 @@ export async function updateWoodInterface() {
 
     if (!dynamicGroup || !backBtnText) return;
 
-    // تنظيف العناصر السابقة
     dynamicGroup.querySelectorAll('.wood-folder-group, .wood-file-group, .scroll-container-group, .subject-separator-group, .scroll-bar-group, .window-frame')
         .forEach(el => el.remove());
 
-    // ===== إضافة اسم المجموعة / السكشن في upper-wood-layer (بدون تكرار) =====
     const upperLayer = document.querySelector('#upper-wood-layer');
     if (upperLayer) {
         const oldTexts = upperLayer.querySelectorAll('.group-name-text, .section-name-text');
@@ -267,7 +301,6 @@ export async function updateWoodInterface() {
 
     const query = normalizeArabic(searchInput ? searchInput.value : '');
 
-    // تحديث نص زر الرجوع
     if (currentFolder === "") {
         backBtnText.textContent = "➡️ إلى الخريطة ➡️";
         const currentState = getCurrentNavigationState();
@@ -298,7 +331,6 @@ export async function updateWoodInterface() {
             `🔙 ${breadcrumb} ${displayLabel}`;
     }
 
-    // تحديث نص زر تغيير الجروب
     if (groupBtnText && currentGroup) {
         groupBtnText.textContent = `Change Group 🔄 ${currentGroup}`;
     }
@@ -822,6 +854,6 @@ export function initWoodUI() {
     setupEyeToggleSystem();
     setupInstallButton();
 
-    // ✅ زر تبديل الاتجاه الفعال (بدلاً من الزر الإرشادي القديم)
+    // زر تبديل الاتجاه الفعال
     createOrientationToggleButtonInUpperLayer();
 }
