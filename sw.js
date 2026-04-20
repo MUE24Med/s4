@@ -1,6 +1,6 @@
 /* ========================================
    sw.js - Service Worker
-   ✅ محسّن: CACHE_NAME من URL param (متزامن مع index.html)
+   ✅ محسّن: CACHE_NAME من URL param + تحميل الملفات الأساسية أولاً
    ======================================== */
 
 // ✅ اقرأ اسم الكاش من URL بدل hardcode — يتطابق تلقائياً مع index.html
@@ -36,31 +36,39 @@ const urlsToCache = [
 ];
 
 // ============================================================
-// INSTALL — تحميل متوازٍ بدل sequential
+// INSTALL — تحميل متوازٍ مع أولوية للملفات الأساسية (HTML, CSS, JS)
 // ============================================================
 self.addEventListener('install', event => {
     console.log('🔧 SW: تثبيت الإصدار', CACHE_NAME);
+    
+    // تقسيم الملفات إلى أساسية وثانوية
+    const criticalFiles = urlsToCache.filter(url => 
+        !url.includes('/image/') && !url.match(/\.(webp|png|jpg|jpeg)$/i)
+    );
+    const nonCriticalFiles = urlsToCache.filter(url => 
+        url.includes('/image/') || url.match(/\.(webp|png|jpg|jpeg)$/i)
+    );
+    
     event.waitUntil(
-        caches.open(CACHE_NAME).then(cache =>
-            // ✅ كل الملفات بتتحمل في نفس الوقت
+        caches.open(CACHE_NAME).then(async cache => {
+            // 1. تحميل الملفات الأساسية أولاً (تسلسلي سريع)
+            for (const url of criticalFiles) {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) await cache.put(url, response);
+                } catch(e) {
+                    console.warn(`⚠️ فشل تخزين: ${url}`, e.message);
+                }
+            }
+            console.log('✅ SW: تم تخزين الملفات الأساسية');
+            
+            // 2. تحميل الصور لاحقاً في الخلفية (لا ننتظرها)
             Promise.all(
-                urlsToCache.map(url =>
-                    fetch(url)
-                        .then(response => {
-                            if (!response || response.status !== 200) {
-                                console.warn(`⚠️ فشل تخزين (${response?.status ?? 'no response'}): ${url}`);
-                                return Promise.resolve();
-                            }
-                            return cache.put(url, response);
-                        })
-                        .catch(err => {
-                            console.warn(`⚠️ فشل تخزين: ${url}`, err.message);
-                            return Promise.resolve();
-                        })
+                nonCriticalFiles.map(url =>
+                    fetch(url).then(res => res.ok && cache.put(url, res)).catch(() => {})
                 )
-            )
-        ).then(() => {
-            console.log('✅ SW: تم التثبيت -', CACHE_NAME);
+            ).then(() => console.log('✅ SW: تم تخزين الصور'));
+            
             return self.skipWaiting();
         })
     );
@@ -113,7 +121,7 @@ async function handleFetch(request) {
     const cached = await caches.match(request);
 
     if (cached) {
-        // ✅ Background update — بس للـ HTML/CSS/JS مش الصور (توفير bandwidth)
+        // Background update — بس للـ HTML/CSS/JS مش الصور
         if (shouldBackgroundUpdate(request.url)) {
             updateCacheInBackground(request.clone());
         }
@@ -139,7 +147,6 @@ async function handleFetch(request) {
     }
 }
 
-// ✅ Background update — بس للملفات اللي بتتغير (مش الصور والـ PDF)
 function updateCacheInBackground(requestClone) {
     fetch(requestClone).then(response => {
         if (response && response.status === 200) {
@@ -150,9 +157,6 @@ function updateCacheInBackground(requestClone) {
     }).catch(() => {});
 }
 
-// ============================================================
-// shouldCache — ما يُحفظ في الكاش
-// ============================================================
 function shouldCache(url) {
     try {
         const pathname = new URL(url).pathname;
@@ -166,12 +170,11 @@ function shouldCache(url) {
     }
 }
 
-// ✅ Background update بس للملفات النصية — مش الصور والـ PDF (توفير bandwidth)
 function shouldBackgroundUpdate(url) {
     try {
         const pathname = new URL(url).pathname;
         if (pathname.includes('sw.js')) return false;
-        if (pathname.match(/\.(webp|png|jpg|jpeg|pdf|woff2?)$/)) return false; // صور وملفات ثابتة — مش محتاجة update
+        if (pathname.match(/\.(webp|png|jpg|jpeg|pdf|woff2?)$/)) return false;
         if (pathname.match(/\.(html|css|js|json)$/)) return true;
         if (pathname.includes('/javascript/')) return true;
         return false;
