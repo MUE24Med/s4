@@ -7,6 +7,10 @@ import { getDisplayName, debounce, resetBrowserZoom } from './utils.js';
 import { pushNavigationState, goToWood } from './navigation.js';
 import { setCurrentGroup, setCurrentFolder, setGlobalFileTree, globalFileTree, currentGroup, currentFolder, setCurrentSection, currentSection } from './state.js';
 
+// ---------- تخزين شجرة الملفات مؤقتاً ----------
+const TREE_CACHE_KEY = 'global_file_tree_cache';
+const TREE_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 ساعة
+
 // ---------- متغيرات داخلية للتحميل ----------
 let imageUrlsToLoad = [];
 let loadingProgress = {
@@ -17,14 +21,36 @@ let loadingProgress = {
 
 const STATIC_IMAGES = ['image/wood.webp', 'image/Upper_wood.webp'];
 
-// ---------- شجرة الملفات ----------
-export async function fetchGlobalTree() {
-    if (globalFileTree.length > 0) return;
+// ---------- شجرة الملفات مع الكاش ----------
+export async function fetchGlobalTree(force = false) {
+    if (globalFileTree.length > 0 && !force) return;
+
+    // 1. حاول القراءة من localStorage
+    const cached = localStorage.getItem(TREE_CACHE_KEY);
+    if (!force && cached) {
+        try {
+            const { data, timestamp } = JSON.parse(cached);
+            if (Date.now() - timestamp < TREE_CACHE_TTL) {
+                setGlobalFileTree(data);
+                console.log("✅ تم تحميل شجرة الملفات من الكاش المحلي");
+                return;
+            }
+        } catch(e) {}
+    }
+
+    // 2. جلب من الشبكة
     try {
         const response = await fetch(TREE_API_URL);
         const data = await response.json();
-        setGlobalFileTree(data.tree || []);
-        console.log("✅ تم تحميل شجرة الملفات:", globalFileTree.length);
+        const treeData = data.tree || [];
+        setGlobalFileTree(treeData);
+
+        // حفظ في localStorage
+        localStorage.setItem(TREE_CACHE_KEY, JSON.stringify({
+            data: treeData,
+            timestamp: Date.now()
+        }));
+        console.log("🌐 تم تحميل شجرة الملفات من GitHub وتخزينها");
     } catch (err) {
         console.error("❌ خطأ في الاتصال بـ GitHub:", err);
     }
@@ -213,12 +239,10 @@ async function loadSectionSVG(groupLetter, sectionNum) {
             let addedCount = 0;
             while (svgRoot.children.length) {
                 const child = svgRoot.children[0];
-                // أضف كلاس section-specific لكل العناصر المضافة من السكشن
                 child.classList.add('section-specific');
                 if (child.tagName === 'image') {
                     child.classList.add('section-image');
                 }
-                // أضف العنصر في بداية الحاوية ليكون فوق محتوى الجروب
                 groupContainer.insertBefore(child, groupContainer.firstChild);
                 addedCount++;
             }
@@ -266,7 +290,6 @@ export function updateWoodLogo(groupLetter) {
     dynamicGroup.appendChild(banner);
 }
 
-// ---------- إضافة النص المدمج (الجروب + السكشن) ----------
 function updateSectionName() {
     const upperLayer = document.querySelector('#upper-wood-layer');
     if (!upperLayer) return;
@@ -341,7 +364,7 @@ async function selectSection(sectionNum, groupLetter) {
     await initializeGroup(groupLetter, sectionNum);
 }
 
-// ---------- تهيئة المجموعة ----------
+// ---------- تهيئة المجموعة (مع requestIdleCallback) ----------
 export async function initializeGroup(groupLetter, sectionNum) {
     if (!sectionNum) {
         console.error('❌ initializeGroup requires a section number');
@@ -379,11 +402,18 @@ export async function initializeGroup(groupLetter, sectionNum) {
     pushNavigationState(NAV_STATE.WOOD_VIEW, { group: groupLetter });
 
     showLoadingScreen(groupLetter);
-    await Promise.all([fetchGlobalTree(), loadGroupSVG(groupLetter)]);
-    await loadSectionSVG(groupLetter, sectionNum);
-
-    updateDynamicSizes();
-    await loadImages();
+    
+    // تحميل شجرة الملفات أولاً (خفيفة)
+    await fetchGlobalTree();
+    
+    // تحميل SVG المجموعة والسكشن في الخلفية مع إعطاء أولوية للعرض
+    requestIdleCallback(async () => {
+        await loadGroupSVG(groupLetter);
+        await loadSectionSVG(groupLetter, sectionNum);
+        updateDynamicSizes();
+        await loadImages();
+        finishLoading();
+    }, { timeout: 500 });
 }
 
 export async function loadImages() {
